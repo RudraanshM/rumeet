@@ -1081,7 +1081,6 @@
     // State Variables
     let peer = null;
     let localStream = null;
-    let cameraTrack = null;
     
     // Multi-peer Mesh Connection Maps
     const calls = {};          // peerId -> MediaConnection
@@ -1318,7 +1317,6 @@
       try {
         localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localVideo.srcObject = localStream;
-        cameraTrack = localStream.getVideoTracks()[0];
       } catch (err) {
         alert("Camera and Microphone permissions are required.");
       }
@@ -1676,60 +1674,22 @@
       return str.replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
     }
 
-    async function updateLocalVideoState(off) {
+    // UPDATED: Video toggle using track.enabled (No stream stopping / re-acquiring)
+    function updateLocalVideoState(off) {
       isVideoOff = off;
       document.getElementById('videoLabel').textContent = isVideoOff ? "Start Video" : "Stop Video";
       stopVideoBtn.classList.toggle('active', isVideoOff);
 
+      if (localStream && localStream.getVideoTracks().length > 0) {
+        localStream.getVideoTracks()[0].enabled = !isVideoOff;
+      }
+
       if (isVideoOff) {
-        if (cameraTrack) {
-          cameraTrack.stop();
-          if (localStream) localStream.removeTrack(cameraTrack);
-          cameraTrack = null;
-        }
-        
         localVideo.classList.add('hidden-video');
         localAvatar.style.display = 'flex';
-
-        Object.values(calls).forEach(call => {
-          if (call.peerConnection) {
-            const sender = call.peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
-            if (sender) call.peerConnection.removeTrack(sender);
-          }
-        });
       } else {
-        try {
-          const newVideoStream = await navigator.mediaDevices.getUserMedia({ video: true });
-          cameraTrack = newVideoStream.getVideoTracks()[0];
-          
-          if (localStream) {
-            localStream.addTrack(cameraTrack);
-          } else {
-            localStream = newVideoStream;
-          }
-          
-          localVideo.srcObject = localStream;
-          localVideo.classList.remove('hidden-video');
-          localAvatar.style.display = 'none';
-
-          Object.values(calls).forEach(call => {
-            if (call.peerConnection) {
-              const sender = call.peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
-              if (sender) {
-                sender.replaceTrack(cameraTrack);
-              } else {
-                call.peerConnection.addTrack(cameraTrack, localStream);
-              }
-            }
-          });
-        } catch (err) {
-          console.error("Camera re-enable error:", err);
-          showToast("Unable to start system camera.");
-          isVideoOff = true;
-          document.getElementById('videoLabel').textContent = "Start Video";
-          stopVideoBtn.classList.add('active');
-          return;
-        }
+        localVideo.classList.remove('hidden-video');
+        localAvatar.style.display = 'none';
       }
 
       broadcastData({ type: 'video-toggle', videoOff: isVideoOff });
@@ -1750,10 +1710,12 @@
       }
     }
 
+    // UPDATED: Audio toggle using track.enabled (No stream stopping)
     function updateAudioState(muted) {
       isAudioMuted = muted;
-      const track = localStream ? localStream.getAudioTracks()[0] : null;
-      if (track) track.enabled = !isAudioMuted;
+      if (localStream && localStream.getAudioTracks().length > 0) {
+        localStream.getAudioTracks()[0].enabled = !isAudioMuted;
+      }
 
       document.getElementById('audioLabel').textContent = isAudioMuted ? "Unmute" : "Mute";
       muteAudioBtn.classList.toggle('active', isAudioMuted);
@@ -1848,20 +1810,22 @@
         screenStream = null;
       }
 
-      if (cameraTrack) {
-        const audioTrack = localStream ? localStream.getAudioTracks()[0] : null;
-        Object.values(calls).forEach(call => {
-          if (call.peerConnection) {
+      const cameraTrack = localStream ? localStream.getVideoTracks()[0] : null;
+      const audioTrack = localStream ? localStream.getAudioTracks()[0] : null;
+
+      Object.values(calls).forEach(call => {
+        if (call.peerConnection) {
+          if (cameraTrack) {
             const sender = call.peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
             if (sender) sender.replaceTrack(cameraTrack);
-
-            if (audioTrack) {
-              const audioSender = call.peerConnection.getSenders().find(s => s.track && s.track.kind === 'audio');
-              if (audioSender) audioSender.replaceTrack(audioTrack);
-            }
           }
-        });
-      }
+
+          if (audioTrack) {
+            const audioSender = call.peerConnection.getSenders().find(s => s.track && s.track.kind === 'audio');
+            if (audioSender) audioSender.replaceTrack(audioTrack);
+          }
+        }
+      });
 
       localVideo.srcObject = localStream;
       localVideo.classList.add('local-mirror');
