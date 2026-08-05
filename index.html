@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Zoom Web Clone - Global P2P</title>
+  <title>Rumeet - Global P2P</title>
   
   <!-- PeerJS Library for WebRTC Signaling & Data Channels -->
   <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
@@ -25,7 +25,7 @@
       overflow: hidden;
     }
 
-    /* Zoom Top Bar */
+    /* Top Header Bar */
     header {
       height: 44px;
       background-color: #0f0f0f;
@@ -90,7 +90,6 @@
       max-height: calc(100vh - 120px);
     }
 
-    /* Pinned Layout View */
     .video-grid.pinned-mode {
       display: flex;
       flex-direction: column;
@@ -139,12 +138,80 @@
       transform: scaleX(-1);
     }
 
+    /* RED CIRCLE REMOTE MAGIC MOUSE CURSOR */
+    .remote-magic-cursor {
+      position: fixed;
+      width: 24px;
+      height: 24px;
+      pointer-events: none;
+      z-index: 99999;
+      transform: translate(-50%, -50%);
+      display: none;
+      transition: transform 0.05s ease-out;
+    }
+
+    .remote-magic-cursor .cursor-pointer {
+      width: 24px;
+      height: 24px;
+      background: rgba(255, 0, 0, 0.8);
+      border: 2px solid #ffffff;
+      border-radius: 50%;
+      box-shadow: 0 0 12px #ff0000, 0 0 24px #ff0000;
+    }
+
+    .remote-magic-cursor .cursor-label {
+      position: absolute;
+      top: 26px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.85);
+      border: 1px solid #ff0000;
+      color: #ff4d4d;
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      white-space: nowrap;
+      font-weight: bold;
+    }
+
+    /* Floating Reaction Overlay Container */
+    .reaction-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 8;
+    }
+
+    .floating-emoji {
+      position: absolute;
+      bottom: 10px;
+      font-size: 2.2rem;
+      animation: floatUp 2.5s ease-out forwards;
+      opacity: 1;
+    }
+
+    @keyframes floatUp {
+      0% {
+        transform: translateY(0) scale(0.6);
+        opacity: 0;
+      }
+      20% {
+        opacity: 1;
+        transform: translateY(-20px) scale(1.2);
+      }
+      100% {
+        transform: translateY(-220px) scale(1);
+        opacity: 0;
+      }
+    }
+
     /* Avatar Circle Display when Video is Off */
     .avatar-circle {
       width: 96px;
       height: 96px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #0e71eb, #1d4ed8);
+      background: linear-gradient(135deg, #ff007f, #7928ca);
       color: #ffffff;
       display: flex;
       align-items: center;
@@ -206,14 +273,15 @@
       background: #2563eb;
     }
 
-    /* Zoom Chat Sidebar */
+    /* Sidebar Chat */
     .chat-sidebar {
-      width: 320px;
+      width: 340px;
       background: #191919;
       border-left: 1px solid #2a2a2a;
       display: flex;
       flex-direction: column;
       transition: margin-right 0.3s ease;
+      z-index: 12;
     }
 
     .chat-sidebar.hidden {
@@ -293,7 +361,57 @@
       border-color: #0e71eb;
     }
 
-    /* Zoom Control Bar (Bottom Dock) */
+    /* Live Whiteboard Overlay Modal */
+    .whiteboard-modal {
+      position: absolute;
+      inset: 20px;
+      background: #1e1e1e;
+      border: 1px solid #3a3a3a;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      z-index: 50;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    }
+
+    .whiteboard-modal.hidden {
+      display: none;
+    }
+
+    .wb-header {
+      padding: 8px 16px;
+      background: #121212;
+      border-bottom: 1px solid #2a2a2a;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top-left-radius: 12px;
+      border-top-right-radius: 12px;
+    }
+
+    .wb-tools {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .wb-tools input[type="color"] {
+      border: none;
+      background: transparent;
+      width: 28px;
+      height: 28px;
+      cursor: pointer;
+    }
+
+    canvas#wbCanvas {
+      flex: 1;
+      background: #ffffff;
+      cursor: crosshair;
+      border-bottom-left-radius: 12px;
+      border-bottom-right-radius: 12px;
+    }
+
+    /* Bottom Control Dock */
     .zoom-controls {
       height: 72px;
       background: #0f0f0f;
@@ -303,6 +421,7 @@
       align-items: center;
       padding: 0 1.5rem;
       z-index: 10;
+      position: relative;
     }
 
     .controls-group {
@@ -371,7 +490,86 @@
       background: #b91c1c;
     }
 
-    /* Modal / Join Card */
+    /* Popover More Menu */
+    .more-menu-container {
+      position: relative;
+    }
+
+    .more-popover {
+      position: absolute;
+      bottom: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #242424;
+      border: 1px solid #3a3a3a;
+      border-radius: 10px;
+      width: 230px;
+      padding: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+      display: none;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 100;
+    }
+
+    .more-popover.active {
+      display: flex;
+    }
+
+    .popover-item {
+      background: transparent;
+      border: none;
+      color: #eee;
+      padding: 10px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      text-align: left;
+      width: 100%;
+    }
+
+    .popover-item:hover {
+      background: #333;
+    }
+
+    .reaction-bar {
+      display: flex;
+      justify-content: space-around;
+      padding: 6px 0;
+      border-bottom: 1px solid #333;
+    }
+
+    .reaction-bar span {
+      font-size: 1.4rem;
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+
+    .reaction-bar span:hover {
+      transform: scale(1.3);
+    }
+
+    /* Magic Mouse Permission Modal Dialog */
+    .mouse-perm-dialog {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #111;
+      border: 2px solid #ff0000;
+      border-radius: 8px;
+      padding: 12px 20px;
+      z-index: 300;
+      display: none;
+      box-shadow: 0 0 20px rgba(255, 0, 0, 0.4);
+      align-items: center;
+      gap: 15px;
+    }
+
+    /* Startup Modal */
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -386,17 +584,37 @@
       background: #242424;
       border-radius: 12px;
       padding: 2rem;
-      width: 380px;
+      width: 420px;
       text-align: center;
       box-shadow: 0 20px 40px rgba(0,0,0,0.6);
     }
 
-    .zoom-logo {
-      font-size: 1.8rem;
-      font-weight: 800;
-      color: #0e71eb;
-      margin-bottom: 1.5rem;
+    /* PERMANENT FULL RGB RAINBOW GLOW TITLE */
+    .rainbow-glow-title {
+      font-size: 2.5rem;
+      font-weight: 900;
       letter-spacing: -1px;
+      margin-bottom: 1.5rem;
+      background: linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #00ffff, #0000ff, #8b00ff, #ff0000);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: rgbGlowSweep 4s linear infinite !important;
+    }
+
+    @keyframes rgbGlowSweep {
+      0% {
+        background-position: 0% center;
+        filter: drop-shadow(0 0 10px rgba(255, 0, 0, 0.8));
+      }
+      50% {
+        background-position: 100% center;
+        filter: drop-shadow(0 0 20px rgba(0, 255, 255, 0.8));
+      }
+      100% {
+        background-position: 200% center;
+        filter: drop-shadow(0 0 10px rgba(255, 0, 0, 0.8));
+      }
     }
 
     .input-field {
@@ -406,27 +624,39 @@
       color: #fff;
       padding: 10px 14px;
       border-radius: 6px;
-      margin-bottom: 1rem;
+      margin-bottom: 0.8rem;
       outline: none;
+      font-size: 0.9rem;
     }
 
     .input-field:focus {
-      border-color: #0e71eb;
+      border-color: #ff007f;
     }
 
     .btn-zoom-blue {
       width: 100%;
-      background: #0e71eb;
+      background: linear-gradient(90deg, #0e71eb, #1d4ed8);
       color: white;
       border: none;
       padding: 10px;
       border-radius: 6px;
       font-weight: 600;
       cursor: pointer;
+      font-size: 0.9rem;
+      transition: opacity 0.2s;
     }
 
     .btn-zoom-blue:hover {
-      background: #0b5cbe;
+      opacity: 0.9;
+    }
+
+    .btn-secondary {
+      background: #333;
+      margin-top: 0.4rem;
+    }
+
+    .btn-secondary:hover {
+      background: #444;
     }
 
     .toast {
@@ -436,51 +666,94 @@
       transform: translateX(-50%);
       background: #0e71eb;
       color: white;
-      padding: 6px 16px;
+      padding: 8px 20px;
       border-radius: 20px;
       font-size: 0.85rem;
       z-index: 200;
       display: none;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    }
+
+    .msg-preview {
+      background: #121212;
+      border: 1px solid #333;
+      padding: 10px;
+      border-radius: 6px;
+      color: #ddd;
+      font-size: 0.8rem;
+      text-align: left;
+      margin: 0.8rem 0;
+      white-space: pre-wrap;
+      max-height: 140px;
+      overflow-y: auto;
     }
   </style>
 </head>
 <body>
 
+  <!-- Magic Mouse Permission Dialog -->
+  <div class="mouse-perm-dialog" id="mousePermDialog">
+    <span id="mousePermText" style="font-size:0.85rem;">Peer requested to display their Magic Mouse Red Cursor on your screen.</span>
+    <button class="card-btn" id="allowMouseBtn" style="background:#10b981;">Allow</button>
+    <button class="card-btn" id="denyMouseBtn" style="background:#dc2626;">Deny</button>
+  </div>
+
+  <!-- Red Circle Remote Cursor -->
+  <div class="remote-magic-cursor" id="remoteMagicCursor">
+    <div class="cursor-pointer"></div>
+    <div class="cursor-label" id="cursorLabel">Peer (X:0 Y:0 Z:0)</div>
+  </div>
+
   <!-- Top Header Bar -->
   <header>
-    <div class="zoom-shield" id="shareMeetingBtn" title="Click to copy meeting link">
+    <div class="zoom-shield" id="shareMeetingBtn" title="Click to copy invite message">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-5.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
-      Meeting Info
+      Copy Invite Msg
     </div>
-    <div class="meeting-title" id="meetingTitle">Zoom Meeting Code: ------</div>
+    <div class="meeting-title" id="meetingTitle">Rumeet Code: ------</div>
     <div class="view-indicator" id="viewIndicator">Gallery View</div>
   </header>
 
   <!-- App Body View -->
   <div class="app-body">
-    <!-- Video Stage -->
     <div class="video-stage">
+      
+      <!-- Live Whiteboard Overlay -->
+      <div class="whiteboard-modal hidden" id="whiteboardModal">
+        <div class="wb-header">
+          <span style="font-weight: 600; font-size: 0.9rem;">Live Shared Whiteboard</span>
+          <div class="wb-tools">
+            <label style="font-size:0.8rem;">Color: <input type="color" id="wbColor" value="#00f0ff"></label>
+            <button class="card-btn" id="clearWbBtn">Clear</button>
+            <button class="card-btn" onclick="toggleWhiteboard()" style="background:#dc2626;">Close</button>
+          </div>
+        </div>
+        <canvas id="wbCanvas"></canvas>
+      </div>
+
       <div class="video-grid" id="videoGrid">
         
         <!-- Local Video Card -->
         <div class="video-card" id="localCard">
           <video id="localVideo" class="local-mirror" autoplay playsinline muted></video>
+          <div class="reaction-overlay" id="localReactionOverlay"></div>
           <div class="avatar-circle" id="localAvatar" style="display: none;">U</div>
           <div class="nametag"><span id="localNameLabel">User (You)</span></div>
           <div class="card-actions">
             <button class="card-btn" onclick="togglePin('localCard')">📌 Pin</button>
-            <button class="card-btn" onclick="togglePip('localVideo')">🖼️ PiP</button>
+            <button class="card-btn" onclick="triggerNativePiP('localVideo')">🖼️ Widget</button>
           </div>
         </div>
 
         <!-- Remote Video Card -->
         <div class="video-card" id="remoteCard">
           <video id="remoteVideo" autoplay playsinline></video>
+          <div class="reaction-overlay" id="remoteReactionOverlay"></div>
           <div class="avatar-circle" id="remoteAvatar" style="display: none;">R</div>
           <div class="nametag"><span id="remoteNameLabel">Remote Peer</span></div>
           <div class="card-actions">
             <button class="card-btn" onclick="togglePin('remoteCard')">📌 Pin</button>
-            <button class="card-btn" onclick="togglePip('remoteVideo')">🖼️ PiP Widget</button>
+            <button class="card-btn" onclick="triggerNativePiP('remoteVideo')">🖼️ Widget</button>
           </div>
         </div>
 
@@ -490,31 +763,30 @@
     <!-- Right Sidebar Chat -->
     <div class="chat-sidebar hidden" id="chatSidebar">
       <div class="chat-header">
-        In-Meeting Chat
+        <span id="chatSidebarTitle">In-Meeting Chat</span>
         <span style="cursor:pointer;" onclick="toggleChat()">✕</span>
       </div>
       <div class="chat-messages" id="chatMessages"></div>
       <div class="chat-input-area">
-        <input type="text" id="chatInput" placeholder="Type message here..." onkeydown="if(event.key==='Enter') sendChatMessage()" />
+        <input type="text" id="chatInput" placeholder="Type message..." onkeydown="if(event.key==='Enter') sendChatMessage()" />
         <button class="z-btn-share" style="border:none; border-radius:6px; padding:0 10px; cursor:pointer;" onclick="sendChatMessage()">Send</button>
       </div>
     </div>
   </div>
 
-  <!-- Bottom Zoom Dock Controls -->
+  <!-- Bottom Dock Controls -->
   <div class="zoom-controls">
     <div class="controls-group">
       <button class="z-btn" id="muteAudioBtn">
-        <svg id="micIcon" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
         <span id="audioLabel">Mute</span>
       </button>
 
       <button class="z-btn" id="stopVideoBtn">
-        <svg id="videoIcon" viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
         <span id="videoLabel">Stop Video</span>
       </button>
 
-      <!-- Master Audio & Video Master Toggle Button -->
       <button class="z-btn" id="masterAvBtn">
         <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
         <span id="masterAvLabel">AV Off</span>
@@ -526,14 +798,43 @@
         <svg viewBox="0 0 24 24"><path d="M20 18c1.1 0 1.99-.9 1.99-2L22 5c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 5h16v11H4V5z"/></svg>
         <span id="shareLabel">Share Screen</span>
       </button>
-      <button class="z-btn" id="pipBtn">
-        <svg viewBox="0 0 24 24"><path d="M19 11h-8v6h8v-6zm4-8H1c-.55 0-1 .45-1 1v16c0 .55.45 1 1 1h22c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1zm-2 16H3V5h18v14z"/></svg>
-        <span>PIP Widget</span>
-      </button>
+      
       <button class="z-btn" id="chatToggleBtn">
         <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg>
         <span>Chat</span>
       </button>
+
+      <!-- Magic Mouse Toggle Control Button -->
+      <button class="z-btn" id="magicMouseBtn" onclick="requestMagicMouseAccess()" style="color:#ff0000;">
+        <svg viewBox="0 0 24 24"><path d="M13 1.07V9h7c0-4.08-3.05-7.44-7-7.93zM4 15c0 4.42 3.58 8 8 8s8-3.58 8-8v-4H4v4zm7-13.93C7.05 1.56 4 4.92 4 9h7V1.07z"/></svg>
+        <span>Magic Mouse</span>
+      </button>
+
+      <!-- Widget Floating Button directly outside More Menu -->
+      <button class="z-btn" id="pipWidgetBtn" onclick="triggerNativePiP('remoteVideo')">
+        <svg viewBox="0 0 24 24"><path d="M19 11h-8v6h8v-6zm4 8V5c0-1.1-.9-2-2-2H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2zm-2 0H3V5h18v14z"/></svg>
+        <span>Widget</span>
+      </button>
+
+      <!-- More Options Popover Menu -->
+      <div class="more-menu-container">
+        <button class="z-btn" id="moreOptionsBtn">
+          <svg viewBox="0 0 24 24"><path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+          <span>More</span>
+        </button>
+
+        <div class="more-popover" id="morePopover">
+          <div class="reaction-bar">
+            <span onclick="triggerEmojiReaction('❤️')">❤️</span>
+            <span onclick="triggerEmojiReaction('👏')">👏</span>
+            <span onclick="triggerEmojiReaction('👍')">👍</span>
+            <span onclick="triggerEmojiReaction('🔥')">🔥</span>
+            <span onclick="triggerEmojiReaction('😂')">😂</span>
+            <span onclick="triggerEmojiReaction('🎉')">🎉</span>
+          </div>
+          <button class="popover-item" onclick="toggleWhiteboard()">🎨 Live Whiteboard</button>
+        </div>
+      </div>
     </div>
 
     <div class="controls-group">
@@ -541,25 +842,48 @@
     </div>
   </div>
 
-  <!-- Zoom Startup Card Overlay -->
+  <!-- Startup Modal Overlay -->
   <div class="modal-overlay" id="modalOverlay">
-    <div class="zoom-card">
-      <div class="zoom-logo">zoom</div>
-      
-      <!-- Join as Name Input -->
-      <input type="text" class="input-field" id="userNameInput" placeholder="Your Display Name..." />
-      
-      <button class="btn-zoom-blue" id="newMeetingBtn" style="margin-bottom: 1rem;">New Meeting</button>
-      <div style="color: #666; font-size: 0.8rem; margin-bottom: 1rem;">— OR JOIN WITH CODE —</div>
+    <div class="zoom-card" id="initialChoiceCard">
+      <div class="rainbow-glow-title">Rumeet</div>
+      <button class="btn-zoom-blue" id="btnChooseCreate" style="margin-bottom: 0.8rem;">Create Meeting</button>
+      <button class="btn-zoom-blue btn-secondary" id="btnChooseJoin">Join Meeting</button>
+    </div>
+
+    <div class="zoom-card" id="createCard" style="display: none;">
+      <div class="rainbow-glow-title">Rumeet</div>
+      <input type="text" class="input-field" id="createNameInput" placeholder="Your Name..." />
+      <input type="text" class="input-field" id="meetingNameInput" placeholder="Meeting Name (e.g. Science Class)" />
+      <input type="text" class="input-field" id="meetingDescInput" placeholder="Description (e.g. Physics Revision)" />
+      <div style="display:flex; gap:8px;">
+        <input type="text" class="input-field" id="startTimeInput" placeholder="Start Time (e.g. 4:00 PM)" />
+        <input type="text" class="input-field" id="endTimeInput" placeholder="End Time (e.g. 5:00 PM)" />
+      </div>
+      <button class="btn-zoom-blue" id="startMeetingBtn">Start Meeting</button>
+      <button class="btn-zoom-blue btn-secondary" id="backBtn1">Back</button>
+    </div>
+
+    <div class="zoom-card" id="joinCard" style="display: none;">
+      <div class="rainbow-glow-title">Rumeet</div>
+      <input type="text" class="input-field" id="joinNameInput" placeholder="Your Name..." />
       <input type="text" class="input-field" id="joinCodeInput" placeholder="Enter Meeting Code..." />
-      <button class="btn-zoom-blue" id="joinMeetingBtn" style="background: #333;">Join Meeting</button>
+      <button class="btn-zoom-blue" id="submitJoinBtn">Join Meeting</button>
+      <button class="btn-zoom-blue btn-secondary" id="backBtn2">Back</button>
+    </div>
+
+    <div class="zoom-card" id="inviteGenCard" style="display: none;">
+      <div class="rainbow-glow-title">Invite Link</div>
+      <p style="font-size:0.85rem; color:#aaa; margin-bottom: 0.5rem;">Your meeting is ready! Share this invitation:</p>
+      <div class="msg-preview" id="msgPreviewBox"></div>
+      <button class="btn-zoom-blue" id="copyMsgBtn" style="margin-bottom: 0.5rem;">Copy Message</button>
+      <button class="btn-zoom-blue btn-secondary" id="copyCodeOnlyBtn" style="margin-bottom: 0.5rem;">Copy Code Only</button>
+      <button class="btn-zoom-blue" id="enterStageBtn" style="background: #10b981;">Enter Meeting Room</button>
     </div>
   </div>
 
-  <div class="toast" id="toast">Copied meeting link to clipboard!</div>
+  <div class="toast" id="toast">Copied to clipboard!</div>
 
   <script>
-    // Config for global peer connectivity
     const peerConfig = {
       config: {
         iceServers: [
@@ -581,14 +905,20 @@
     let meetingCode = '';
     let userName = 'User';
     let remoteUserName = 'Remote Peer';
-    
+    let generatedInviteMessage = '';
+
     let isAudioMuted = false;
     let isVideoOff = false;
     let isSharingScreen = false;
     let pinnedCardId = null;
     let screenStream = null;
 
-    // DOM Elements
+    // Magic Mouse Variables
+    let magicMouseActive = false;
+    let magicMouseAllowedByPeer = false;
+    let currentZIndex = 0;
+
+    // Elements
     const localVideo = document.getElementById('localVideo');
     const localAvatar = document.getElementById('localAvatar');
     const localNameLabel = document.getElementById('localNameLabel');
@@ -603,17 +933,19 @@
     const masterAvLabel = document.getElementById('masterAvLabel');
 
     const shareScreenBtn = document.getElementById('shareScreenBtn');
-    const pipBtn = document.getElementById('pipBtn');
     const chatToggleBtn = document.getElementById('chatToggleBtn');
     const chatSidebar = document.getElementById('chatSidebar');
     const chatMessages = document.getElementById('chatMessages');
     const chatInput = document.getElementById('chatInput');
 
+    const moreOptionsBtn = document.getElementById('moreOptionsBtn');
+    const morePopover = document.getElementById('morePopover');
+
     const modalOverlay = document.getElementById('modalOverlay');
-    const userNameInput = document.getElementById('userNameInput');
-    const newMeetingBtn = document.getElementById('newMeetingBtn');
-    const joinMeetingBtn = document.getElementById('joinMeetingBtn');
-    const joinCodeInput = document.getElementById('joinCodeInput');
+    const initialChoiceCard = document.getElementById('initialChoiceCard');
+    const createCard = document.getElementById('createCard');
+    const joinCard = document.getElementById('joinCard');
+    const inviteGenCard = document.getElementById('inviteGenCard');
 
     const meetingTitle = document.getElementById('meetingTitle');
     const shareMeetingBtn = document.getElementById('shareMeetingBtn');
@@ -622,28 +954,28 @@
     const endCallBtn = document.getElementById('endCallBtn');
     const toast = document.getElementById('toast');
 
+    const remoteMagicCursor = document.getElementById('remoteMagicCursor');
+    const cursorLabel = document.getElementById('cursorLabel');
+    const mousePermDialog = document.getElementById('mousePermDialog');
+
     function showToast(msg) {
       toast.textContent = msg;
       toast.style.display = 'block';
       setTimeout(() => toast.style.display = 'none', 3000);
     }
 
-    // Set User Name and Init Avatar
     function setUserName(name) {
       userName = name.trim() || 'User';
       localNameLabel.textContent = `${userName} (You)`;
-      const firstLetter = userName.charAt(0).toUpperCase();
-      localAvatar.textContent = firstLetter;
+      localAvatar.textContent = userName.charAt(0).toUpperCase();
     }
 
     function setRemoteUserName(name) {
       remoteUserName = name.trim() || 'Remote Peer';
       remoteNameLabel.textContent = remoteUserName;
-      const firstLetter = remoteUserName.charAt(0).toUpperCase();
-      remoteAvatar.textContent = firstLetter;
+      remoteAvatar.textContent = remoteUserName.charAt(0).toUpperCase();
     }
 
-    // Get Media Stream
     async function initMedia() {
       if (localStream) return;
       try {
@@ -651,11 +983,10 @@
         localVideo.srcObject = localStream;
         cameraTrack = localStream.getVideoTracks()[0];
       } catch (err) {
-        alert("Camera and Mic permissions are required.");
+        alert("Camera and Microphone permissions are required.");
       }
     }
 
-    // Clean up media tracks when leaving or closing tab
     function stopAllTracks() {
       if (localStream) localStream.getTracks().forEach(t => t.stop());
       if (screenStream) screenStream.getTracks().forEach(t => t.stop());
@@ -663,7 +994,6 @@
     }
     window.addEventListener('beforeunload', stopAllTracks);
 
-    // Initialize PeerJS Instance
     function initPeerInstance(customId = null, displayCode = null) {
       return new Promise((resolve) => {
         if (peer) peer.destroy();
@@ -672,7 +1002,7 @@
 
         peer.on('open', (assignedId) => {
           meetingCode = displayCode || assignedId;
-          meetingTitle.textContent = `Zoom Meeting Code: ${meetingCode}`;
+          meetingTitle.textContent = `Rumeet Code: ${meetingCode}`;
           resolve(assignedId);
         });
 
@@ -697,12 +1027,10 @@
       });
     }
 
-    // Call Target Peer
     function connectToRemote(remoteId) {
       if (!localStream) return;
 
       activeCall = peer.call(remoteId, localStream);
-      
       if (activeCall) {
         activeCall.on('stream', (stream) => {
           remoteVideo.srcObject = stream;
@@ -718,12 +1046,7 @@
       if (!dataConnection) return;
 
       dataConnection.on('open', () => {
-        // Send user metadata and current video status to peer on connect
-        dataConnection.send({
-          type: 'meta',
-          name: userName,
-          videoOff: isVideoOff
-        });
+        dataConnection.send({ type: 'meta', name: userName, videoOff: isVideoOff });
       });
 
       dataConnection.on('data', (data) => {
@@ -735,11 +1058,259 @@
         } else if (data.type === 'chat') {
           appendMessage(remoteUserName, data.text, false);
           chatSidebar.classList.remove('hidden');
+        } else if (data.type === 'reaction') {
+          displayFloatingEmoji('remoteReactionOverlay', data.emoji);
+        } else if (data.type === 'draw') {
+          drawRemoteLine(data);
+        } else if (data.type === 'clear-wb') {
+          clearCanvasLocal();
+        } else if (data.type === 'magic-mouse-request') {
+          mousePermDialog.style.display = 'flex';
+        } else if (data.type === 'magic-mouse-response') {
+          if (data.allowed) {
+            magicMouseAllowedByPeer = true;
+            magicMouseActive = true;
+            showToast("Magic Mouse granted by peer!");
+          } else {
+            showToast("Peer denied Magic Mouse access.");
+          }
+        } else if (data.type === 'magic-mouse-xyz') {
+          renderRemoteMouse(data.x, data.y, data.z);
         }
       });
     }
 
-    // Dynamic Video Off & Avatar Toggle
+    // Magic Mouse Access Handlers
+    function requestMagicMouseAccess() {
+      if (!dataConnection || !dataConnection.open) {
+        showToast("Must be connected to a peer first.");
+        return;
+      }
+
+      if (!magicMouseActive) {
+        dataConnection.send({ type: 'magic-mouse-request' });
+        showToast("Requested Magic Mouse access from peer...");
+      } else {
+        magicMouseActive = false;
+        showToast("Magic Mouse deactivated.");
+      }
+    }
+
+    document.getElementById('allowMouseBtn').addEventListener('click', () => {
+      mousePermDialog.style.display = 'none';
+      if (dataConnection && dataConnection.open) {
+        dataConnection.send({ type: 'magic-mouse-response', allowed: true });
+      }
+    });
+
+    document.getElementById('denyMouseBtn').addEventListener('click', () => {
+      mousePermDialog.style.display = 'none';
+      if (dataConnection && dataConnection.open) {
+        dataConnection.send({ type: 'magic-mouse-response', allowed: false });
+      }
+    });
+
+    // Track Local Mouse Movement & Scroll Wheel for XYZ
+    window.addEventListener('mousemove', (e) => {
+      if (!magicMouseActive || !magicMouseAllowedByPeer) return;
+      const xNorm = e.clientX / window.innerWidth;
+      const yNorm = e.clientY / window.innerHeight;
+
+      if (dataConnection && dataConnection.open) {
+        dataConnection.send({
+          type: 'magic-mouse-xyz',
+          x: xNorm,
+          y: yNorm,
+          z: currentZIndex
+        });
+      }
+    });
+
+    window.addEventListener('wheel', (e) => {
+      if (!magicMouseActive || !magicMouseAllowedByPeer) return;
+      currentZIndex += e.deltaY > 0 ? -1 : 1;
+      
+      const xNorm = e.clientX / window.innerWidth;
+      const yNorm = e.clientY / window.innerHeight;
+
+      if (dataConnection && dataConnection.open) {
+        dataConnection.send({
+          type: 'magic-mouse-xyz',
+          x: xNorm,
+          y: yNorm,
+          z: currentZIndex
+        });
+      }
+    });
+
+    // Render Red Circle Cursor on Peer Display
+    function renderRemoteMouse(normX, normY, z) {
+      remoteMagicCursor.style.display = 'block';
+      const actualX = normX * window.innerWidth;
+      const actualY = normY * window.innerHeight;
+
+      remoteMagicCursor.style.left = `${actualX}px`;
+      remoteMagicCursor.style.top = `${actualY}px`;
+
+      // Scale Z-depth
+      const scale = Math.max(0.5, Math.min(2.5, 1 + (z * 0.05)));
+      remoteMagicCursor.style.transform = `translate(-50%, -50%) scale(${scale})`;
+      cursorLabel.textContent = `${remoteUserName} (X:${Math.round(actualX)} Y:${Math.round(actualY)} Z:${z})`;
+    }
+
+    // Native OS Floating Picture-in-Picture Widget Outside Browser Tab
+    async function triggerNativePiP(videoId) {
+      const targetVideo = document.getElementById(videoId);
+      try {
+        if (document.pictureInPictureElement) {
+          await document.exitPictureInPicture();
+          showToast("Floating Widget closed.");
+        } else if (targetVideo && targetVideo.readyState >= 2) {
+          await targetVideo.requestPictureInPicture();
+          showToast("Floating Widget opened outside tab!");
+        } else {
+          showToast("Video stream not ready for Widget.");
+        }
+      } catch (err) {
+        console.error(err);
+        showToast("Widget error: " + err.message);
+      }
+      morePopover.classList.remove('active');
+    }
+
+    // Reaction Flow
+    function triggerEmojiReaction(emoji) {
+      displayFloatingEmoji('localReactionOverlay', emoji);
+      if (dataConnection && dataConnection.open) {
+        dataConnection.send({ type: 'reaction', emoji: emoji });
+      }
+      morePopover.classList.remove('active');
+    }
+
+    function displayFloatingEmoji(overlayId, emoji) {
+      const overlay = document.getElementById(overlayId);
+      const span = document.createElement('span');
+      span.className = 'floating-emoji';
+      span.textContent = emoji;
+      span.style.left = `${Math.floor(Math.random() * 70) + 15}%`;
+      overlay.appendChild(span);
+
+      setTimeout(() => span.remove(), 2500);
+    }
+
+    // Toggle Popover
+    moreOptionsBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      morePopover.classList.toggle('active');
+    });
+    document.addEventListener('click', () => morePopover.classList.remove('active'));
+
+    // Live Whiteboard Logic
+    const wbModal = document.getElementById('whiteboardModal');
+    const wbCanvas = document.getElementById('wbCanvas');
+    const wbColor = document.getElementById('wbColor');
+    const clearWbBtn = document.getElementById('clearWbBtn');
+    let ctx = wbCanvas.getContext('2d');
+    let isDrawing = false;
+    let prevX = 0, prevY = 0;
+
+    function toggleWhiteboard() {
+      wbModal.classList.toggle('hidden');
+      if (!wbModal.classList.contains('hidden')) {
+        wbCanvas.width = wbModal.clientWidth;
+        wbCanvas.height = wbModal.clientHeight - 45;
+      }
+      morePopover.classList.remove('active');
+    }
+
+    wbCanvas.addEventListener('mousedown', (e) => {
+      isDrawing = true;
+      const rect = wbCanvas.getBoundingClientRect();
+      prevX = e.clientX - rect.left;
+      prevY = e.clientY - rect.top;
+    });
+
+    wbCanvas.addEventListener('mousemove', (e) => {
+      if (!isDrawing) return;
+      const rect = wbCanvas.getBoundingClientRect();
+      const currX = e.clientX - rect.left;
+      const currY = e.clientY - rect.top;
+
+      drawStroke(prevX, prevY, currX, currY, wbColor.value);
+
+      if (dataConnection && dataConnection.open) {
+        dataConnection.send({
+          type: 'draw',
+          x0: prevX / wbCanvas.width,
+          y0: prevY / wbCanvas.height,
+          x1: currX / wbCanvas.width,
+          y1: currY / wbCanvas.height,
+          color: wbColor.value
+        });
+      }
+
+      prevX = currX;
+      prevY = currY;
+    });
+
+    wbCanvas.addEventListener('mouseup', () => isDrawing = false);
+
+    function drawStroke(x0, y0, x1, y1, color) {
+      ctx.beginPath();
+      ctx.moveTo(x0, y0);
+      ctx.lineTo(x1, y1);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+      ctx.closePath();
+    }
+
+    function drawRemoteLine(data) {
+      const x0 = data.x0 * wbCanvas.width;
+      const y0 = data.y0 * wbCanvas.height;
+      const x1 = data.x1 * wbCanvas.width;
+      const y1 = data.y1 * wbCanvas.height;
+      drawStroke(x0, y0, x1, y1, data.color);
+    }
+
+    clearWbBtn.addEventListener('click', () => {
+      clearCanvasLocal();
+      if (dataConnection && dataConnection.open) {
+        dataConnection.send({ type: 'clear-wb' });
+      }
+    });
+
+    function clearCanvasLocal() {
+      ctx.clearRect(0, 0, wbCanvas.width, wbCanvas.height);
+    }
+
+    function sendChatMessage() {
+      const text = chatInput.value.trim();
+      if (!text) return;
+
+      appendMessage(userName, text, true);
+      if (dataConnection && dataConnection.open) {
+        dataConnection.send({ type: 'chat', text: text });
+      }
+      chatInput.value = '';
+    }
+
+    function appendMessage(sender, text, isMe) {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = `msg ${isMe ? 'me' : ''}`;
+      msgDiv.innerHTML = `
+        <span class="msg-sender">${sender}</span>
+        <div class="msg-bubble">${escapeHtml(text)}</div>
+      `;
+      chatMessages.appendChild(msgDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
+    }
+
     function updateLocalVideoState(off) {
       isVideoOff = off;
       const track = localStream ? localStream.getVideoTracks()[0] : null;
@@ -756,7 +1327,6 @@
         localAvatar.style.display = 'none';
       }
 
-      // Notify remote peer of video state change
       if (dataConnection && dataConnection.open) {
         dataConnection.send({ type: 'video-toggle', videoOff: isVideoOff });
       }
@@ -791,38 +1361,10 @@
       masterAvLabel.textContent = bothDisabled ? "AV On" : "AV Off";
     }
 
-    // Chat Functions
     function toggleChat() {
       chatSidebar.classList.toggle('hidden');
     }
 
-    function sendChatMessage() {
-      const text = chatInput.value.trim();
-      if (!text) return;
-
-      appendMessage(userName, text, true);
-      if (dataConnection && dataConnection.open) {
-        dataConnection.send({ type: 'chat', text: text });
-      }
-      chatInput.value = '';
-    }
-
-    function appendMessage(sender, text, isMe) {
-      const msgDiv = document.createElement('div');
-      msgDiv.className = `msg ${isMe ? 'me' : ''}`;
-      msgDiv.innerHTML = `
-        <span class="msg-sender">${sender}</span>
-        <div class="msg-bubble">${escapeHtml(text)}</div>
-      `;
-      chatMessages.appendChild(msgDiv);
-      chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
-
-    function escapeHtml(str) {
-      return str.replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
-    }
-
-    // Pinning Logic
     function togglePin(cardId) {
       const card = document.getElementById(cardId);
       if (pinnedCardId === cardId) {
@@ -839,28 +1381,6 @@
       }
     }
 
-    // Floating Picture-in-Picture Widget Logic
-    async function togglePip(videoId) {
-      const targetVideo = document.getElementById(videoId);
-      try {
-        if (document.pictureInPictureElement) {
-          await document.exitPictureInPicture();
-        } else if (targetVideo && targetVideo.readyState >= 2) {
-          await targetVideo.requestPictureInPicture();
-        } else {
-          showToast("Video stream not ready for PIP widget.");
-        }
-      } catch (err) {
-        console.error("PIP Error:", err);
-        showToast("Picture-in-Picture not supported or blocked.");
-      }
-    }
-
-    pipBtn.addEventListener('click', () => {
-      togglePip('remoteVideo');
-    });
-
-    // Share Screen
     async function toggleShareScreen() {
       if (!isSharingScreen) {
         try {
@@ -880,7 +1400,7 @@
 
           screenTrack.onended = () => stopScreenSharing();
         } catch (err) {
-          console.error("Screen share error:", err);
+          console.error(err);
         }
       } else {
         stopScreenSharing();
@@ -905,16 +1425,85 @@
       document.getElementById('shareLabel').textContent = "Share Screen";
     }
 
-    // UI Controls
-    muteAudioBtn.addEventListener('click', () => {
-      updateAudioState(!isAudioMuted);
+    // Modal UI Flow
+    document.getElementById('btnChooseCreate').addEventListener('click', () => {
+      initialChoiceCard.style.display = 'none';
+      createCard.style.display = 'block';
     });
 
-    stopVideoBtn.addEventListener('click', () => {
-      updateLocalVideoState(!isVideoOff);
+    document.getElementById('btnChooseJoin').addEventListener('click', () => {
+      initialChoiceCard.style.display = 'none';
+      joinCard.style.display = 'block';
     });
 
-    // Master Audio & Video Control Button (Turns Both On or Off Together)
+    document.getElementById('backBtn1').addEventListener('click', () => {
+      createCard.style.display = 'none';
+      initialChoiceCard.style.display = 'block';
+    });
+
+    document.getElementById('backBtn2').addEventListener('click', () => {
+      joinCard.style.display = 'none';
+      initialChoiceCard.style.display = 'block';
+    });
+
+    document.getElementById('startMeetingBtn').addEventListener('click', async () => {
+      const name = document.getElementById('createNameInput').value.trim();
+      const mName = document.getElementById('meetingNameInput').value.trim() || 'a meeting';
+      const mDesc = document.getElementById('meetingDescInput').value.trim() || 'General discussion';
+      const startTime = document.getElementById('startTimeInput').value.trim() || 'Now';
+      const endTime = document.getElementById('endTimeInput').value.trim() || 'TBD';
+
+      if (!name) return alert("Please enter your name.");
+
+      setUserName(name);
+      await initPeerInstance();
+
+      generatedInviteMessage = `Hello, I would like you to join ${mName} in Rumeet. It is a ${mDesc}. Visit rudraanshm.github.io/rumeet and join the meeting. Timings (${startTime}) to (${endTime}). The code is ${meetingCode}. See you at the meeting.`;
+
+      document.getElementById('msgPreviewBox').textContent = generatedInviteMessage;
+      createCard.style.display = 'none';
+      inviteGenCard.style.display = 'block';
+    });
+
+    document.getElementById('copyMsgBtn').addEventListener('click', () => {
+      navigator.clipboard.writeText(generatedInviteMessage);
+      showToast("Message saved to clipboard!");
+    });
+
+    document.getElementById('copyCodeOnlyBtn').addEventListener('click', () => {
+      navigator.clipboard.writeText(meetingCode);
+      showToast("Meeting code copied to clipboard!");
+    });
+
+    document.getElementById('enterStageBtn').addEventListener('click', () => {
+      modalOverlay.style.display = 'none';
+    });
+
+    document.getElementById('submitJoinBtn').addEventListener('click', async () => {
+      const name = document.getElementById('joinNameInput').value.trim();
+      const targetCode = document.getElementById('joinCodeInput').value.trim();
+
+      if (!name) return alert("Please enter your name.");
+      if (!targetCode) return alert("Please enter a meeting code.");
+
+      setUserName(name);
+      modalOverlay.style.display = 'none';
+      await initPeerInstance(null, targetCode); 
+      connectToRemote(targetCode);
+    });
+
+    shareMeetingBtn.addEventListener('click', () => {
+      if (generatedInviteMessage) {
+        navigator.clipboard.writeText(generatedInviteMessage);
+        showToast("Invite message copied to clipboard!");
+      } else {
+        navigator.clipboard.writeText(meetingCode);
+        showToast("Meeting code copied to clipboard!");
+      }
+    });
+
+    muteAudioBtn.addEventListener('click', () => updateAudioState(!isAudioMuted));
+    stopVideoBtn.addEventListener('click', () => updateLocalVideoState(!isVideoOff));
     masterAvBtn.addEventListener('click', () => {
       const turnOffBoth = !(isAudioMuted && isVideoOff);
       updateAudioState(turnOffBoth);
@@ -924,45 +1513,19 @@
     shareScreenBtn.addEventListener('click', toggleShareScreen);
     chatToggleBtn.addEventListener('click', toggleChat);
 
-    newMeetingBtn.addEventListener('click', async () => {
-      setUserName(userNameInput.value);
-      modalOverlay.style.display = 'none';
-      await initPeerInstance();
-      const link = `${window.location.origin}${window.location.pathname}?room=${meetingCode}`;
-      navigator.clipboard.writeText(link);
-      showToast("Meeting created! Code copied to clipboard.");
-    });
-
-    joinMeetingBtn.addEventListener('click', async () => {
-      setUserName(userNameInput.value);
-      const targetCode = joinCodeInput.value.trim();
-      if (targetCode) {
-        modalOverlay.style.display = 'none';
-        await initPeerInstance(null, targetCode); 
-        connectToRemote(targetCode);
-      } else {
-        alert("Please enter a meeting code.");
-      }
-    });
-
-    shareMeetingBtn.addEventListener('click', () => {
-      const link = `${window.location.origin}${window.location.pathname}?room=${meetingCode}`;
-      navigator.clipboard.writeText(link);
-      showToast("Meeting link copied to clipboard!");
-    });
-
     endCallBtn.addEventListener('click', () => {
       stopAllTracks();
       location.reload();
     });
 
-    // Auto-fill code from URL if provided
     window.addEventListener('load', async () => {
       await initMedia();
       const params = new URLSearchParams(window.location.search);
       const room = params.get('room');
       if (room) {
-        joinCodeInput.value = room;
+        initialChoiceCard.style.display = 'none';
+        joinCard.style.display = 'block';
+        document.getElementById('joinCodeInput').value = room;
       }
     });
   </script>
