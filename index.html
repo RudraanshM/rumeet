@@ -9,6 +9,37 @@
   <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 
   <style>
+    :root {
+      --bg-main: #1a1a1a;
+      --bg-header: #0f0f0f;
+      --bg-card: #1e1e1e;
+      --bg-popover: #242424;
+      --bg-sidebar: #191919;
+      --bg-sidebar-header: #222222;
+      --bg-input: #2a2a2a;
+      --border-color: #2a2a2a;
+      --text-main: #ffffff;
+      --text-muted: #cccccc;
+      --text-sub: #888888;
+      --stage-bg: #000000;
+    }
+
+    /* Light Mode Variables */
+    body.light-theme {
+      --bg-main: #f3f4f6;
+      --bg-header: #ffffff;
+      --bg-card: #ffffff;
+      --bg-popover: #ffffff;
+      --bg-sidebar: #f9fafb;
+      --bg-sidebar-header: #f3f4f6;
+      --bg-input: #e5e7eb;
+      --border-color: #e5e7eb;
+      --text-main: #111827;
+      --text-muted: #374151;
+      --text-sub: #6b7280;
+      --stage-bg: #e5e7eb;
+    }
+
     * {
       box-sizing: border-box;
       margin: 0;
@@ -17,23 +48,24 @@
     }
 
     body {
-      background-color: #1a1a1a;
-      color: #ffffff;
+      background-color: var(--bg-main);
+      color: var(--text-main);
       height: 100vh;
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      transition: background-color 0.3s, color 0.3s;
     }
 
     /* Top Header Bar */
     header {
       height: 44px;
-      background-color: #0f0f0f;
+      background-color: var(--bg-header);
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 0 1rem;
-      border-bottom: 1px solid #2a2a2a;
+      border-bottom: 1px solid var(--border-color);
       z-index: 10;
     }
 
@@ -49,16 +81,16 @@
 
     .meeting-title {
       font-size: 0.9rem;
-      color: #cccccc;
+      color: var(--text-muted);
       font-weight: 500;
     }
 
     .view-indicator {
       font-size: 0.8rem;
-      background: #2a2a2a;
+      background: var(--bg-input);
       padding: 4px 10px;
       border-radius: 4px;
-      color: #aaa;
+      color: var(--text-muted);
     }
 
     /* Main Content Area */
@@ -77,7 +109,7 @@
       align-items: center;
       justify-content: center;
       position: relative;
-      background-color: #000000;
+      background-color: var(--stage-bg);
       transition: all 0.3s ease;
     }
 
@@ -98,14 +130,15 @@
 
     .video-card {
       position: relative;
-      background: #1e1e1e;
+      background: var(--bg-card);
       border-radius: 8px;
       overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
       border: 2px solid transparent;
-      transition: border-color 0.2s, flex 0.3s ease;
+      transition: border-color 0.2s, flex 0.3s ease, background 0.3s;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
 
     .video-card.is-pinned {
@@ -136,42 +169,6 @@
 
     .local-mirror {
       transform: scaleX(-1);
-    }
-
-    /* RED CIRCLE REMOTE MAGIC MOUSE CURSOR */
-    .remote-magic-cursor {
-      position: fixed;
-      width: 24px;
-      height: 24px;
-      pointer-events: none;
-      z-index: 99999;
-      transform: translate(-50%, -50%);
-      display: none;
-      transition: transform 0.05s ease-out;
-    }
-
-    .remote-magic-cursor .cursor-pointer {
-      width: 24px;
-      height: 24px;
-      background: rgba(255, 0, 0, 0.8);
-      border: 2px solid #ffffff;
-      border-radius: 50%;
-      box-shadow: 0 0 12px #ff0000, 0 0 24px #ff0000;
-    }
-
-    .remote-magic-cursor .cursor-label {
-      position: absolute;
-      top: 26px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.85);
-      border: 1px solid #ff0000;
-      color: #ff4d4d;
-      font-size: 0.7rem;
-      padding: 2px 6px;
-      border-radius: 4px;
-      white-space: nowrap;
-      font-weight: bold;
     }
 
     /* Floating Reaction Overlay Container */
@@ -235,6 +232,7 @@
       bottom: 10px;
       left: 10px;
       background: rgba(0, 0, 0, 0.65);
+      color: #ffffff;
       padding: 4px 10px;
       border-radius: 4px;
       font-size: 0.8rem;
@@ -273,14 +271,14 @@
       background: #2563eb;
     }
 
-    /* Sidebar Chat */
+    /* Chat & Right Sidebar */
     .chat-sidebar {
       width: 340px;
-      background: #191919;
-      border-left: 1px solid #2a2a2a;
+      background: var(--bg-sidebar);
+      border-left: 1px solid var(--border-color);
       display: flex;
       flex-direction: column;
-      transition: margin-right 0.3s ease;
+      transition: margin-right 0.3s ease, background 0.3s;
       z-index: 12;
     }
 
@@ -290,8 +288,8 @@
 
     .chat-header {
       padding: 12px 16px;
-      background: #222;
-      border-bottom: 1px solid #2a2a2a;
+      background: var(--bg-sidebar-header);
+      border-bottom: 1px solid var(--border-color);
       font-weight: 600;
       font-size: 0.9rem;
       display: flex;
@@ -316,15 +314,15 @@
 
     .msg-sender {
       font-size: 0.75rem;
-      color: #888;
+      color: var(--text-sub);
       margin-bottom: 2px;
     }
 
     .msg-bubble {
-      background: #2a2a2a;
+      background: var(--bg-input);
       padding: 8px 12px;
       border-radius: 8px;
-      color: #eee;
+      color: var(--text-main);
       word-break: break-word;
       width: fit-content;
       max-width: 90%;
@@ -341,16 +339,16 @@
 
     .chat-input-area {
       padding: 12px;
-      border-top: 1px solid #2a2a2a;
+      border-top: 1px solid var(--border-color);
       display: flex;
       gap: 8px;
     }
 
     .chat-input-area input {
       flex: 1;
-      background: #2a2a2a;
-      border: 1px solid #3a3a3a;
-      color: #fff;
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
       padding: 8px 12px;
       border-radius: 6px;
       outline: none;
@@ -361,27 +359,27 @@
       border-color: #0e71eb;
     }
 
-    /* Live Whiteboard Overlay Modal */
-    .whiteboard-modal {
+    /* Modal Overlays (Whiteboard, Calculator, Wikipedia) */
+    .overlay-modal {
       position: absolute;
       inset: 20px;
-      background: #1e1e1e;
-      border: 1px solid #3a3a3a;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
       border-radius: 12px;
       display: flex;
       flex-direction: column;
       z-index: 50;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }
 
-    .whiteboard-modal.hidden {
+    .overlay-modal.hidden {
       display: none;
     }
 
-    .wb-header {
+    .modal-header {
       padding: 8px 16px;
-      background: #121212;
-      border-bottom: 1px solid #2a2a2a;
+      background: var(--bg-sidebar-header);
+      border-bottom: 1px solid var(--border-color);
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -411,11 +409,115 @@
       border-bottom-right-radius: 12px;
     }
 
+    /* Calculator Styles */
+    .calc-modal {
+      width: 300px;
+      height: 420px;
+      inset: auto;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .calc-body {
+      flex: 1;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: var(--bg-sidebar);
+      border-bottom-left-radius: 12px;
+      border-bottom-right-radius: 12px;
+    }
+
+    .calc-display {
+      width: 100%;
+      height: 50px;
+      background: #000000;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: #00ff66;
+      font-size: 1.5rem;
+      text-align: right;
+      padding: 0 12px;
+      outline: none;
+    }
+
+    .calc-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      flex: 1;
+    }
+
+    .calc-btn {
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      font-size: 1.1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
+    }
+
+    .calc-btn:hover {
+      opacity: 0.8;
+    }
+
+    .calc-btn.op {
+      background: #f59e0b;
+      color: black;
+      font-weight: bold;
+    }
+
+    .calc-btn.danger {
+      background: #dc2626;
+      color: white;
+    }
+
+    /* Wikipedia Iframe Styles */
+    .wiki-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #fff;
+      border-bottom-left-radius: 12px;
+      border-bottom-right-radius: 12px;
+      overflow: hidden;
+    }
+
+    .wiki-search-bar {
+      display: flex;
+      gap: 8px;
+      padding: 8px;
+      background: var(--bg-card);
+    }
+
+    .wiki-search-bar input {
+      flex: 1;
+      padding: 6px 12px;
+      border-radius: 4px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-input);
+      color: var(--text-main);
+      outline: none;
+    }
+
+    .wiki-iframe {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
     /* Bottom Control Dock */
     .zoom-controls {
       height: 72px;
-      background: #0f0f0f;
-      border-top: 1px solid #2a2a2a;
+      background: var(--bg-header);
+      border-top: 1px solid var(--border-color);
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -433,7 +535,7 @@
     .z-btn {
       background: transparent;
       border: none;
-      color: #cccccc;
+      color: var(--text-muted);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -444,12 +546,12 @@
       cursor: pointer;
       font-size: 0.75rem;
       min-width: 60px;
-      transition: background 0.15s;
+      transition: background 0.15s, color 0.15s;
     }
 
     .z-btn:hover {
-      background: #2a2a2a;
-      color: #ffffff;
+      background: var(--bg-input);
+      color: var(--text-main);
     }
 
     .z-btn svg {
@@ -500,12 +602,12 @@
       bottom: 60px;
       left: 50%;
       transform: translateX(-50%);
-      background: #242424;
-      border: 1px solid #3a3a3a;
+      background: var(--bg-popover);
+      border: 1px solid var(--border-color);
       border-radius: 10px;
       width: 230px;
       padding: 8px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
       display: none;
       flex-direction: column;
       gap: 6px;
@@ -519,7 +621,7 @@
     .popover-item {
       background: transparent;
       border: none;
-      color: #eee;
+      color: var(--text-main);
       padding: 10px;
       border-radius: 6px;
       display: flex;
@@ -532,19 +634,14 @@
     }
 
     .popover-item:hover {
-      background: #333;
-    }
-
-    .popover-item.recording-active {
-      color: #ef4444;
-      font-weight: bold;
+      background: var(--bg-input);
     }
 
     .reaction-bar {
       display: flex;
       justify-content: space-around;
       padding: 6px 0;
-      border-bottom: 1px solid #333;
+      border-bottom: 1px solid var(--border-color);
     }
 
     .reaction-bar span {
@@ -555,23 +652,6 @@
 
     .reaction-bar span:hover {
       transform: scale(1.3);
-    }
-
-    /* Magic Mouse Permission Modal Dialog */
-    .mouse-perm-dialog {
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #111;
-      border: 2px solid #ff0000;
-      border-radius: 8px;
-      padding: 12px 20px;
-      z-index: 300;
-      display: none;
-      box-shadow: 0 0 20px rgba(255, 0, 0, 0.4);
-      align-items: center;
-      gap: 15px;
     }
 
     /* Startup Modal */
@@ -586,15 +666,16 @@
     }
 
     .zoom-card {
-      background: #242424;
+      background: var(--bg-popover);
       border-radius: 12px;
       padding: 2rem;
       width: 420px;
       text-align: center;
       box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+      border: 1px solid var(--border-color);
     }
 
-    /* PERMANENT FULL RGB RAINBOW GLOW TITLE */
+    /* RGB Rainbow Neon Title Styles */
     .rainbow-glow-title {
       font-size: 2.5rem;
       font-weight: 900;
@@ -604,7 +685,7 @@
       background-size: 200% auto;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      animation: rgbGlowSweep 4s linear infinite !important;
+      animation: rgbGlowSweep 5s linear infinite;
     }
 
     @keyframes rgbGlowSweep {
@@ -622,11 +703,19 @@
       }
     }
 
+    .rainbow-glow-title.still-neon {
+      animation: none !important;
+      background: linear-gradient(135deg, #ff007f, #00f0ff, #00ff66) !important;
+      -webkit-background-clip: text !important;
+      -webkit-text-fill-color: transparent !important;
+      filter: drop-shadow(0 0 12px #ff007f) drop-shadow(0 0 20px #00f0ff) !important;
+    }
+
     .input-field {
       width: 100%;
-      background: #1a1a1a;
-      border: 1px solid #3a3a3a;
-      color: #fff;
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
       padding: 10px 14px;
       border-radius: 6px;
       margin-bottom: 0.8rem;
@@ -656,12 +745,13 @@
     }
 
     .btn-secondary {
-      background: #333;
+      background: var(--bg-input);
+      color: var(--text-main);
       margin-top: 0.4rem;
     }
 
     .btn-secondary:hover {
-      background: #444;
+      opacity: 0.8;
     }
 
     .toast {
@@ -680,11 +770,11 @@
     }
 
     .msg-preview {
-      background: #121212;
-      border: 1px solid #333;
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
       padding: 10px;
       border-radius: 6px;
-      color: #ddd;
+      color: var(--text-muted);
       font-size: 0.8rem;
       text-align: left;
       margin: 0.8rem 0;
@@ -695,19 +785,6 @@
   </style>
 </head>
 <body>
-
-  <!-- Magic Mouse Permission Dialog -->
-  <div class="mouse-perm-dialog" id="mousePermDialog">
-    <span id="mousePermText" style="font-size:0.85rem;">Peer requested to display their Magic Mouse Red Cursor on your screen.</span>
-    <button class="card-btn" id="allowMouseBtn" style="background:#10b981;">Allow</button>
-    <button class="card-btn" id="denyMouseBtn" style="background:#dc2626;">Deny</button>
-  </div>
-
-  <!-- Red Circle Remote Cursor -->
-  <div class="remote-magic-cursor" id="remoteMagicCursor">
-    <div class="cursor-pointer"></div>
-    <div class="cursor-label" id="cursorLabel">Peer (X:0 Y:0 Z:0)</div>
-  </div>
 
   <!-- Top Header Bar -->
   <header>
@@ -723,9 +800,9 @@
   <div class="app-body">
     <div class="video-stage">
       
-      <!-- Live Whiteboard Overlay -->
-      <div class="whiteboard-modal hidden" id="whiteboardModal">
-        <div class="wb-header">
+      <!-- Live Whiteboard Overlay Modal -->
+      <div class="overlay-modal hidden" id="whiteboardModal">
+        <div class="modal-header">
           <span style="font-weight: 600; font-size: 0.9rem;">Live Shared Whiteboard</span>
           <div class="wb-tools">
             <label style="font-size:0.8rem;">Color: <input type="color" id="wbColor" value="#00f0ff"></label>
@@ -734,6 +811,58 @@
           </div>
         </div>
         <canvas id="wbCanvas"></canvas>
+      </div>
+
+      <!-- Calculator Overlay Modal -->
+      <div class="overlay-modal calc-modal hidden" id="calculatorModal">
+        <div class="modal-header">
+          <span style="font-weight: 600; font-size: 0.9rem;">🧮 Calculator</span>
+          <button class="card-btn" onclick="toggleCalculator()" style="background:#dc2626;">Close</button>
+        </div>
+        <div class="calc-body">
+          <input type="text" class="calc-display" id="calcDisplay" readonly value="0">
+          <div class="calc-grid">
+            <button class="calc-btn danger" onclick="clearCalc()">C</button>
+            <button class="calc-btn" onclick="calcInput('(')">(</button>
+            <button class="calc-btn" onclick="calcInput(')')">)</button>
+            <button class="calc-btn op" onclick="calcInput('/')">÷</button>
+
+            <button class="calc-btn" onclick="calcInput('7')">7</button>
+            <button class="calc-btn" onclick="calcInput('8')">8</button>
+            <button class="calc-btn" onclick="calcInput('9')">9</button>
+            <button class="calc-btn op" onclick="calcInput('*')">×</button>
+
+            <button class="calc-btn" onclick="calcInput('4')">4</button>
+            <button class="calc-btn" onclick="calcInput('5')">5</button>
+            <button class="calc-btn" onclick="calcInput('6')">6</button>
+            <button class="calc-btn op" onclick="calcInput('-')">-</button>
+
+            <button class="calc-btn" onclick="calcInput('1')">1</button>
+            <button class="calc-btn" onclick="calcInput('2')">2</button>
+            <button class="calc-btn" onclick="calcInput('3')">3</button>
+            <button class="calc-btn op" onclick="calcInput('+')">+</button>
+
+            <button class="calc-btn" onclick="calcInput('0')">0</button>
+            <button class="calc-btn" onclick="calcInput('.')">.</button>
+            <button class="calc-btn danger" onclick="deleteCalc()">⌫</button>
+            <button class="calc-btn op" onclick="calculateResult()">=</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Wikipedia Overlay Modal -->
+      <div class="overlay-modal hidden" id="wikipediaModal">
+        <div class="modal-header">
+          <span style="font-weight: 600; font-size: 0.9rem;">🌐 Wikipedia Reader</span>
+          <button class="card-btn" onclick="toggleWikipedia()" style="background:#dc2626;">Close</button>
+        </div>
+        <div class="wiki-body">
+          <div class="wiki-search-bar">
+            <input type="text" id="wikiSearchInput" placeholder="Search Wikipedia..." onkeydown="if(event.key==='Enter') searchWikipedia()">
+            <button class="card-btn" onclick="searchWikipedia()" style="background:#0e71eb; padding: 0 12px;">Search</button>
+          </div>
+          <iframe id="wikiIframe" class="wiki-iframe" src="https://en.m.wikipedia.org"></iframe>
+        </div>
       </div>
 
       <div class="video-grid" id="videoGrid">
@@ -746,7 +875,7 @@
           <div class="nametag"><span id="localNameLabel">User (You)</span></div>
           <div class="card-actions">
             <button class="card-btn" onclick="togglePin('localCard')">📌 Pin</button>
-            <button class="card-btn" onclick="triggerNativePiP('localVideo')">🖼️ Widget</button>
+            <button class="card-btn" onclick="togglePip('localVideo')">🖼️ PiP</button>
           </div>
         </div>
 
@@ -758,7 +887,7 @@
           <div class="nametag"><span id="remoteNameLabel">Remote Peer</span></div>
           <div class="card-actions">
             <button class="card-btn" onclick="togglePin('remoteCard')">📌 Pin</button>
-            <button class="card-btn" onclick="triggerNativePiP('remoteVideo')">🖼️ Widget</button>
+            <button class="card-btn" onclick="togglePip('remoteVideo')">🖼️ PiP Widget</button>
           </div>
         </div>
 
@@ -773,8 +902,8 @@
       </div>
       <div class="chat-messages" id="chatMessages"></div>
       <div class="chat-input-area">
-        <input type="text" id="chatInput" placeholder="Type message..." onkeydown="if(event.key==='Enter') sendChatMessage()" />
-        <button class="z-btn-share" style="border:none; border-radius:6px; padding:0 10px; cursor:pointer;" onclick="sendChatMessage()">Send</button>
+        <input type="text" id="chatInput" placeholder="Type message..." onkeydown="if(event.key==='Enter') handleChatSubmit()" />
+        <button class="z-btn-share" style="border:none; border-radius:6px; padding:0 10px; cursor:pointer;" onclick="handleChatSubmit()">Send</button>
       </div>
     </div>
   </div>
@@ -809,18 +938,6 @@
         <span>Chat</span>
       </button>
 
-      <!-- Magic Mouse Toggle Control Button -->
-      <button class="z-btn" id="magicMouseBtn" onclick="requestMagicMouseAccess()" style="color:#ff0000;">
-        <svg viewBox="0 0 24 24"><path d="M13 1.07V9h7c0-4.08-3.05-7.44-7-7.93zM4 15c0 4.42 3.58 8 8 8s8-3.58 8-8v-4H4v4zm7-13.93C7.05 1.56 4 4.92 4 9h7V1.07z"/></svg>
-        <span>Magic Mouse</span>
-      </button>
-
-      <!-- Widget Floating Button directly outside More Menu -->
-      <button class="z-btn" id="pipWidgetBtn" onclick="triggerNativePiP('remoteVideo')">
-        <svg viewBox="0 0 24 24"><path d="M19 11h-8v6h8v-6zm4 8V5c0-1.1-.9-2-2-2H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2zm-2 0H3V5h18v14z"/></svg>
-        <span>Widget</span>
-      </button>
-
       <!-- More Options Popover Menu -->
       <div class="more-menu-container">
         <button class="z-btn" id="moreOptionsBtn">
@@ -837,8 +954,11 @@
             <span onclick="triggerEmojiReaction('😂')">😂</span>
             <span onclick="triggerEmojiReaction('🎉')">🎉</span>
           </div>
+          <button class="popover-item" id="themeToggleBtn" onclick="toggleTheme()">☀️ Light Mode</button>
           <button class="popover-item" onclick="toggleWhiteboard()">🎨 Live Whiteboard</button>
-          <button class="popover-item" id="recRecordBtn" onclick="toggleScreenRecording()">⏺️ Start Recording</button>
+          <button class="popover-item" onclick="toggleCalculator()">🧮 Calculator</button>
+          <button class="popover-item" onclick="toggleWikipedia()">🌐 Wikipedia Reader</button>
+          <button class="popover-item" onclick="togglePip('remoteVideo')">🖼️ PIP Floating Widget</button>
         </div>
       </div>
     </div>
@@ -879,7 +999,7 @@
 
     <div class="zoom-card" id="inviteGenCard" style="display: none;">
       <div class="rainbow-glow-title">Invite Link</div>
-      <p style="font-size:0.85rem; color:#aaa; margin-bottom: 0.5rem;">Your meeting is ready! Share this invitation:</p>
+      <p style="font-size:0.85rem; color:var(--text-sub); margin-bottom: 0.5rem;">Your meeting is ready! Share this invitation:</p>
       <div class="msg-preview" id="msgPreviewBox"></div>
       <button class="btn-zoom-blue" id="copyMsgBtn" style="margin-bottom: 0.5rem;">Copy Message</button>
       <button class="btn-zoom-blue btn-secondary" id="copyCodeOnlyBtn" style="margin-bottom: 0.5rem;">Copy Code Only</button>
@@ -890,6 +1010,13 @@
   <div class="toast" id="toast">Copied to clipboard!</div>
 
   <script>
+    // Transition Rumeet title glow
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        document.querySelectorAll('.rainbow-glow-title').forEach(el => el.classList.add('still-neon'));
+      }, 5000);
+    });
+
     const peerConfig = {
       config: {
         iceServers: [
@@ -918,16 +1045,7 @@
     let isSharingScreen = false;
     let pinnedCardId = null;
     let screenStream = null;
-
-    // Recording State Variables
-    let mediaRecorder = null;
-    let recordedChunks = [];
-    let isRecording = false;
-
-    // Magic Mouse Variables
-    let magicMouseActive = false;
-    let magicMouseAllowedByPeer = false;
-    let currentZIndex = 0;
+    let isDarkMode = true;
 
     // Elements
     const localVideo = document.getElementById('localVideo');
@@ -948,6 +1066,7 @@
     const chatSidebar = document.getElementById('chatSidebar');
     const chatMessages = document.getElementById('chatMessages');
     const chatInput = document.getElementById('chatInput');
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
 
     const moreOptionsBtn = document.getElementById('moreOptionsBtn');
     const morePopover = document.getElementById('morePopover');
@@ -965,9 +1084,17 @@
     const endCallBtn = document.getElementById('endCallBtn');
     const toast = document.getElementById('toast');
 
-    const remoteMagicCursor = document.getElementById('remoteMagicCursor');
-    const cursorLabel = document.getElementById('cursorLabel');
-    const mousePermDialog = document.getElementById('mousePermDialog');
+    function toggleTheme() {
+      isDarkMode = !isDarkMode;
+      if (isDarkMode) {
+        document.body.classList.remove('light-theme');
+        themeToggleBtn.textContent = '☀️ Light Mode';
+      } else {
+        document.body.classList.add('light-theme');
+        themeToggleBtn.textContent = '🌙 Dark Mode';
+      }
+      morePopover.classList.remove('active');
+    }
 
     function showToast(msg) {
       toast.textContent = msg;
@@ -1075,118 +1202,8 @@
           drawRemoteLine(data);
         } else if (data.type === 'clear-wb') {
           clearCanvasLocal();
-        } else if (data.type === 'magic-mouse-request') {
-          mousePermDialog.style.display = 'flex';
-        } else if (data.type === 'magic-mouse-response') {
-          if (data.allowed) {
-            magicMouseAllowedByPeer = true;
-            magicMouseActive = true;
-            showToast("Magic Mouse granted by peer!");
-          } else {
-            showToast("Peer denied Magic Mouse access.");
-          }
-        } else if (data.type === 'magic-mouse-xyz') {
-          renderRemoteMouse(data.x, data.y, data.z);
         }
       });
-    }
-
-    // Magic Mouse Access Handlers
-    function requestMagicMouseAccess() {
-      if (!dataConnection || !dataConnection.open) {
-        showToast("Must be connected to a peer first.");
-        return;
-      }
-
-      if (!magicMouseActive) {
-        dataConnection.send({ type: 'magic-mouse-request' });
-        showToast("Requested Magic Mouse access from peer...");
-      } else {
-        magicMouseActive = false;
-        showToast("Magic Mouse deactivated.");
-      }
-    }
-
-    document.getElementById('allowMouseBtn').addEventListener('click', () => {
-      mousePermDialog.style.display = 'none';
-      if (dataConnection && dataConnection.open) {
-        dataConnection.send({ type: 'magic-mouse-response', allowed: true });
-      }
-    });
-
-    document.getElementById('denyMouseBtn').addEventListener('click', () => {
-      mousePermDialog.style.display = 'none';
-      if (dataConnection && dataConnection.open) {
-        dataConnection.send({ type: 'magic-mouse-response', allowed: false });
-      }
-    });
-
-    // Track Local Mouse Movement & Scroll Wheel for XYZ
-    window.addEventListener('mousemove', (e) => {
-      if (!magicMouseActive || !magicMouseAllowedByPeer) return;
-      const xNorm = e.clientX / window.innerWidth;
-      const yNorm = e.clientY / window.innerHeight;
-
-      if (dataConnection && dataConnection.open) {
-        dataConnection.send({
-          type: 'magic-mouse-xyz',
-          x: xNorm,
-          y: yNorm,
-          z: currentZIndex
-        });
-      }
-    });
-
-    window.addEventListener('wheel', (e) => {
-      if (!magicMouseActive || !magicMouseAllowedByPeer) return;
-      currentZIndex += e.deltaY > 0 ? -1 : 1;
-      
-      const xNorm = e.clientX / window.innerWidth;
-      const yNorm = e.clientY / window.innerHeight;
-
-      if (dataConnection && dataConnection.open) {
-        dataConnection.send({
-          type: 'magic-mouse-xyz',
-          x: xNorm,
-          y: yNorm,
-          z: currentZIndex
-        });
-      }
-    });
-
-    // Render Red Circle Cursor on Peer Display
-    function renderRemoteMouse(normX, normY, z) {
-      remoteMagicCursor.style.display = 'block';
-      const actualX = normX * window.innerWidth;
-      const actualY = normY * window.innerHeight;
-
-      remoteMagicCursor.style.left = `${actualX}px`;
-      remoteMagicCursor.style.top = `${actualY}px`;
-
-      // Scale Z-depth
-      const scale = Math.max(0.5, Math.min(2.5, 1 + (z * 0.05)));
-      remoteMagicCursor.style.transform = `translate(-50%, -50%) scale(${scale})`;
-      cursorLabel.textContent = `${remoteUserName} (X:${Math.round(actualX)} Y:${Math.round(actualY)} Z:${z})`;
-    }
-
-    // Native OS Floating Picture-in-Picture Widget Outside Browser Tab
-    async function triggerNativePiP(videoId) {
-      const targetVideo = document.getElementById(videoId);
-      try {
-        if (document.pictureInPictureElement) {
-          await document.exitPictureInPicture();
-          showToast("Floating Widget closed.");
-        } else if (targetVideo && targetVideo.readyState >= 2) {
-          await targetVideo.requestPictureInPicture();
-          showToast("Floating Widget opened outside tab!");
-        } else {
-          showToast("Video stream not ready for Widget.");
-        }
-      } catch (err) {
-        console.error(err);
-        showToast("Widget error: " + err.message);
-      }
-      morePopover.classList.remove('active');
     }
 
     // Reaction Flow
@@ -1296,87 +1313,58 @@
       ctx.clearRect(0, 0, wbCanvas.width, wbCanvas.height);
     }
 
-    /* Screen Recording with Audio and Auto Download */
-    async function toggleScreenRecording() {
-      const recBtn = document.getElementById('recRecordBtn');
+    // Calculator Logic
+    const calcModal = document.getElementById('calculatorModal');
+    const calcDisplay = document.getElementById('calcDisplay');
+
+    function toggleCalculator() {
+      calcModal.classList.toggle('hidden');
       morePopover.classList.remove('active');
+    }
 
-      if (!isRecording) {
-        try {
-          // Capture display stream with video & audio
-          const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
-          
-          // Audio Mixing (System Audio + Local Mic Audio)
-          const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-          const dest = audioContext.createMediaStreamDestination();
-
-          if (stream.getAudioTracks().length > 0) {
-            const systemSource = audioContext.createMediaStreamSource(new MediaStream([stream.getAudioTracks()[0]]));
-            systemSource.connect(dest);
-          }
-
-          if (localStream && localStream.getAudioTracks().length > 0) {
-            const micSource = audioContext.createMediaStreamSource(new MediaStream([localStream.getAudioTracks()[0]]));
-            micSource.connect(dest);
-          }
-
-          // Combine video track and mixed audio tracks
-          const combinedStream = new MediaStream([
-            ...stream.getVideoTracks(),
-            ...dest.stream.getAudioTracks()
-          ]);
-
-          recordedChunks = [];
-          mediaRecorder = new MediaRecorder(combinedStream, { mimeType: 'video/webm;codecs=vp9,opus' });
-
-          mediaRecorder.ondataavailable = (event) => {
-            if (event.data.size > 0) recordedChunks.push(event.data);
-          };
-
-          mediaRecorder.onstop = () => {
-            const blob = new Blob(recordedChunks, { type: 'video/webm' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = url;
-            a.download = `rumeet-recording-${Date.now()}.webm`;
-            document.body.appendChild(a);
-            a.click();
-            setTimeout(() => {
-              document.body.removeChild(a);
-              window.URL.revokeObjectURL(url);
-            }, 100);
-
-            showToast("Recording saved and downloaded to Files!");
-            stream.getTracks().forEach(t => t.stop());
-          };
-
-          mediaRecorder.start();
-          isRecording = true;
-          recBtn.textContent = '⏹️ Stop Recording';
-          recBtn.classList.add('recording-active');
-          showToast("Screen recording started with audio!");
-
-          // Handle manual stop via browser UI bar
-          stream.getVideoTracks()[0].onended = () => {
-            if (isRecording) toggleScreenRecording();
-          };
-
-        } catch (err) {
-          console.error(err);
-          showToast("Recording canceled or failed.");
-        }
+    function calcInput(val) {
+      if (calcDisplay.value === '0' || calcDisplay.value === 'Error') {
+        calcDisplay.value = val;
       } else {
-        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-          mediaRecorder.stop();
-        }
-        isRecording = false;
-        recBtn.textContent = '⏺️ Start Recording';
-        recBtn.classList.remove('recording-active');
+        calcDisplay.value += val;
       }
     }
 
-    function sendChatMessage() {
+    function clearCalc() {
+      calcDisplay.value = '0';
+    }
+
+    function deleteCalc() {
+      calcDisplay.value = calcDisplay.value.slice(0, -1);
+      if (calcDisplay.value === '') calcDisplay.value = '0';
+    }
+
+    function calculateResult() {
+      try {
+        calcDisplay.value = eval(calcDisplay.value.replace(/×/g, '*').replace(/÷/g, '/'));
+      } catch (e) {
+        calcDisplay.value = 'Error';
+      }
+    }
+
+    // Wikipedia Viewer Logic
+    const wikiModal = document.getElementById('wikipediaModal');
+    const wikiIframe = document.getElementById('wikiIframe');
+    const wikiSearchInput = document.getElementById('wikiSearchInput');
+
+    function toggleWikipedia() {
+      wikiModal.classList.toggle('hidden');
+      morePopover.classList.remove('active');
+    }
+
+    function searchWikipedia() {
+      const query = wikiSearchInput.value.trim();
+      if (query) {
+        wikiIframe.src = `https://en.m.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(query)}`;
+      }
+    }
+
+    function handleChatSubmit() {
       const text = chatInput.value.trim();
       if (!text) return;
 
@@ -1402,20 +1390,61 @@
       return str.replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
     }
 
-    function updateLocalVideoState(off) {
+    /* HARDWARE CAMERA DISABLE & RE-ENABLE FUNCTIONALITY */
+    async function updateLocalVideoState(off) {
       isVideoOff = off;
-      const track = localStream ? localStream.getVideoTracks()[0] : null;
-      if (track) track.enabled = !isVideoOff;
-
       document.getElementById('videoLabel').textContent = isVideoOff ? "Start Video" : "Stop Video";
       stopVideoBtn.classList.toggle('active', isVideoOff);
 
       if (isVideoOff) {
+        // Stop hardware track completely (Turns off green/red system camera indicator light)
+        if (cameraTrack) {
+          cameraTrack.stop();
+          if (localStream) localStream.removeTrack(cameraTrack);
+          cameraTrack = null;
+        }
+        
         localVideo.classList.add('hidden-video');
         localAvatar.style.display = 'flex';
+
+        // Notify PeerConnection that video track is removed
+        if (activeCall && activeCall.peerConnection) {
+          const sender = activeCall.peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
+          if (sender) activeCall.peerConnection.removeTrack(sender);
+        }
       } else {
-        localVideo.classList.remove('hidden-video');
-        localAvatar.style.display = 'none';
+        // Re-request system camera hardware permission & stream
+        try {
+          const newVideoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+          cameraTrack = newVideoStream.getVideoTracks()[0];
+          
+          if (localStream) {
+            localStream.addTrack(cameraTrack);
+          } else {
+            localStream = newVideoStream;
+          }
+          
+          localVideo.srcObject = localStream;
+          localVideo.classList.remove('hidden-video');
+          localAvatar.style.display = 'none';
+
+          // Update active WebRTC connection sender
+          if (activeCall && activeCall.peerConnection) {
+            const sender = activeCall.peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
+            if (sender) {
+              sender.replaceTrack(cameraTrack);
+            } else {
+              activeCall.peerConnection.addTrack(cameraTrack, localStream);
+            }
+          }
+        } catch (err) {
+          console.error("Camera re-enable error:", err);
+          showToast("Unable to start system camera.");
+          isVideoOff = true;
+          document.getElementById('videoLabel').textContent = "Start Video";
+          stopVideoBtn.classList.add('active');
+          return;
+        }
       }
 
       if (dataConnection && dataConnection.open) {
@@ -1472,11 +1501,25 @@
       }
     }
 
+    async function togglePip(videoId) {
+      const targetVideo = document.getElementById(videoId);
+      try {
+        if (document.pictureInPictureElement) {
+          await document.exitPictureInPicture();
+        } else if (targetVideo && targetVideo.readyState >= 2) {
+          await targetVideo.requestPictureInPicture();
+        } else {
+          showToast("Video stream not ready for PIP.");
+        }
+      } catch (err) {
+        showToast("Picture-in-Picture not supported.");
+      }
+    }
+
     async function toggleShareScreen() {
       if (!isSharingScreen) {
         try {
-          // Screen Share WITH System/Tab Audio
-          screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+          screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
           const screenTrack = screenStream.getVideoTracks()[0];
 
           if (activeCall && activeCall.peerConnection) {
