@@ -111,21 +111,28 @@
       position: relative;
       background-color: var(--stage-bg);
       transition: all 0.3s ease;
+      overflow: hidden;
     }
 
     .video-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 12px;
       width: 100%;
       height: 100%;
       max-height: calc(100vh - 120px);
+      align-content: center;
+      justify-content: center;
     }
 
     .video-grid.pinned-mode {
       display: flex;
       flex-direction: column;
       gap: 10px;
+    }
+
+    .video-grid.your-cam-mode .video-card:not(#card-local) {
+      display: none !important;
     }
 
     .video-card {
@@ -139,6 +146,7 @@
       border: 2px solid transparent;
       transition: border-color 0.2s, flex 0.3s ease, background 0.3s;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      min-height: 180px;
     }
 
     .video-card.is-pinned {
@@ -205,15 +213,15 @@
 
     /* Avatar Circle Display when Video is Off */
     .avatar-circle {
-      width: 96px;
-      height: 96px;
+      width: 80px;
+      height: 80px;
       border-radius: 50%;
       background: linear-gradient(135deg, #ff007f, #7928ca);
       color: #ffffff;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 2.5rem;
+      font-size: 2.2rem;
       font-weight: 700;
       text-transform: uppercase;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
@@ -532,9 +540,36 @@
       gap: 12px;
     }
 
+    /* LIQUID UI BUTTON STYLES */
+    .z-btn, .btn-zoom-blue, .btn-end, .card-btn, .popover-item {
+      position: relative;
+      overflow: hidden;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    }
+
+    .z-btn::after, .btn-zoom-blue::after, .btn-end::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      transition: width 0.4s ease-out, height 0.4s ease-out;
+    }
+
+    .z-btn:active::after, .btn-zoom-blue:active::after, .btn-end:active::after {
+      width: 200px;
+      height: 200px;
+    }
+
     .z-btn {
-      background: transparent;
-      border: none;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       color: var(--text-muted);
       display: flex;
       flex-direction: column;
@@ -542,16 +577,17 @@
       justify-content: center;
       gap: 4px;
       padding: 6px 12px;
-      border-radius: 6px;
+      border-radius: 10px;
       cursor: pointer;
       font-size: 0.75rem;
       min-width: 60px;
-      transition: background 0.15s, color 0.15s;
     }
 
     .z-btn:hover {
-      background: var(--bg-input);
+      background: rgba(255, 255, 255, 0.15);
       color: var(--text-main);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
     }
 
     .z-btn svg {
@@ -562,26 +598,30 @@
 
     .z-btn.active {
       color: #ef4444;
+      border-color: rgba(239, 68, 68, 0.4);
+      background: rgba(239, 68, 68, 0.15);
     }
 
     .z-btn-share {
       color: #10b981;
+      border-color: rgba(16, 185, 129, 0.3);
     }
 
     .z-btn-share:hover {
-      background: rgba(16, 185, 129, 0.15);
+      background: rgba(16, 185, 129, 0.25);
       color: #10b981;
     }
 
     .z-btn-share.sharing {
       color: #ef4444;
+      background: rgba(239, 68, 68, 0.2);
     }
 
     .btn-end {
-      background: #dc2626;
+      background: linear-gradient(135deg, #ef4444, #dc2626);
       color: white;
-      padding: 6px 16px;
-      border-radius: 6px;
+      padding: 8px 18px;
+      border-radius: 8px;
       font-weight: 600;
       font-size: 0.85rem;
       border: none;
@@ -589,7 +629,8 @@
     }
 
     .btn-end:hover {
-      background: #b91c1c;
+      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      transform: translateY(-1px);
     }
 
     /* Popover More Menu */
@@ -605,7 +646,7 @@
       background: var(--bg-popover);
       border: 1px solid var(--border-color);
       border-radius: 10px;
-      width: 230px;
+      width: 240px;
       padding: 8px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.5);
       display: none;
@@ -635,6 +676,18 @@
 
     .popover-item:hover {
       background: var(--bg-input);
+    }
+
+    .popover-item.recording-active {
+      color: #ef4444;
+      font-weight: bold;
+      animation: pulseRecord 1.5s infinite;
+    }
+
+    @keyframes pulseRecord {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
     }
 
     .reaction-bar {
@@ -793,7 +846,7 @@
       Copy Invite Msg
     </div>
     <div class="meeting-title" id="meetingTitle">Rumeet Code: ------</div>
-    <div class="view-indicator" id="viewIndicator">Gallery View</div>
+    <div class="view-indicator" id="viewIndicator">Gallery View (Max 10)</div>
   </header>
 
   <!-- App Body View -->
@@ -865,29 +918,18 @@
         </div>
       </div>
 
+      <!-- Dynamic Video Stage Grid (Up to 10 Participants) -->
       <div class="video-grid" id="videoGrid">
         
         <!-- Local Video Card -->
-        <div class="video-card" id="localCard">
+        <div class="video-card" id="card-local">
           <video id="localVideo" class="local-mirror" autoplay playsinline muted></video>
-          <div class="reaction-overlay" id="localReactionOverlay"></div>
-          <div class="avatar-circle" id="localAvatar" style="display: none;">U</div>
+          <div class="reaction-overlay" id="overlay-local"></div>
+          <div class="avatar-circle" id="avatar-local" style="display: none;">U</div>
           <div class="nametag"><span id="localNameLabel">User (You)</span></div>
           <div class="card-actions">
-            <button class="card-btn" onclick="togglePin('localCard')">📌 Pin</button>
+            <button class="card-btn" onclick="togglePin('card-local')">📌 Pin</button>
             <button class="card-btn" onclick="togglePip('localVideo')">🖼️ PiP</button>
-          </div>
-        </div>
-
-        <!-- Remote Video Card -->
-        <div class="video-card" id="remoteCard">
-          <video id="remoteVideo" autoplay playsinline></video>
-          <div class="reaction-overlay" id="remoteReactionOverlay"></div>
-          <div class="avatar-circle" id="remoteAvatar" style="display: none;">R</div>
-          <div class="nametag"><span id="remoteNameLabel">Remote Peer</span></div>
-          <div class="card-actions">
-            <button class="card-btn" onclick="togglePin('remoteCard')">📌 Pin</button>
-            <button class="card-btn" onclick="togglePip('remoteVideo')">🖼️ PiP Widget</button>
           </div>
         </div>
 
@@ -925,6 +967,12 @@
         <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
         <span id="masterAvLabel">AV Off</span>
       </button>
+
+      <!-- CAM VIEW SWITCHER BUTTON -->
+      <button class="z-btn" id="switchCamViewBtn" onclick="cycleCamView()">
+        <svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 9l5 3-5 3z"/></svg>
+        <span id="camViewLabel">Cam: Auto</span>
+      </button>
     </div>
 
     <div class="controls-group">
@@ -954,11 +1002,11 @@
             <span onclick="triggerEmojiReaction('😂')">😂</span>
             <span onclick="triggerEmojiReaction('🎉')">🎉</span>
           </div>
+          <button class="popover-item" id="recordScreenBtn" onclick="toggleScreenRecording()">📹 Record Screen</button>
           <button class="popover-item" id="themeToggleBtn" onclick="toggleTheme()">☀️ Light Mode</button>
           <button class="popover-item" onclick="toggleWhiteboard()">🎨 Live Whiteboard</button>
           <button class="popover-item" onclick="toggleCalculator()">🧮 Calculator</button>
           <button class="popover-item" onclick="toggleWikipedia()">🌐 Wikipedia Reader</button>
-          <button class="popover-item" onclick="togglePip('remoteVideo')">🖼️ PIP Floating Widget</button>
         </div>
       </div>
     </div>
@@ -1010,7 +1058,8 @@
   <div class="toast" id="toast">Copied to clipboard!</div>
 
   <script>
-    // Transition Rumeet title glow
+    const MAX_PARTICIPANTS = 10;
+
     window.addEventListener('load', () => {
       setTimeout(() => {
         document.querySelectorAll('.rainbow-glow-title').forEach(el => el.classList.add('still-neon'));
@@ -1033,11 +1082,14 @@
     let peer = null;
     let localStream = null;
     let cameraTrack = null;
-    let activeCall = null;
-    let dataConnection = null;
+    
+    // Multi-peer Mesh Connection Maps
+    const calls = {};          // peerId -> MediaConnection
+    const dataConns = {};      // peerId -> DataConnection
+    const peerNames = {};      // peerId -> Name string
+
     let meetingCode = '';
     let userName = 'User';
-    let remoteUserName = 'Remote Peer';
     let generatedInviteMessage = '';
 
     let isAudioMuted = false;
@@ -1047,14 +1099,20 @@
     let screenStream = null;
     let isDarkMode = true;
 
+    // Cam View Switcher Mode: 'auto', 'your-cam', 'pinned-cam', 'gallery-cam'
+    let currentCamViewMode = 'auto';
+
+    // Recording Variables
+    let mediaRecorder = null;
+    let recordedChunks = [];
+    let isRecording = false;
+    let recordStream = null;
+    let audioContext = null;
+
     // Elements
     const localVideo = document.getElementById('localVideo');
-    const localAvatar = document.getElementById('localAvatar');
+    const localAvatar = document.getElementById('avatar-local');
     const localNameLabel = document.getElementById('localNameLabel');
-
-    const remoteVideo = document.getElementById('remoteVideo');
-    const remoteAvatar = document.getElementById('remoteAvatar');
-    const remoteNameLabel = document.getElementById('remoteNameLabel');
 
     const muteAudioBtn = document.getElementById('muteAudioBtn');
     const stopVideoBtn = document.getElementById('stopVideoBtn');
@@ -1067,6 +1125,7 @@
     const chatMessages = document.getElementById('chatMessages');
     const chatInput = document.getElementById('chatInput');
     const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const recordScreenBtn = document.getElementById('recordScreenBtn');
 
     const moreOptionsBtn = document.getElementById('moreOptionsBtn');
     const morePopover = document.getElementById('morePopover');
@@ -1084,6 +1143,45 @@
     const endCallBtn = document.getElementById('endCallBtn');
     const toast = document.getElementById('toast');
 
+    /* CAM VIEW SWITCHER FUNCTIONALITY */
+    function cycleCamView() {
+      const modes = ['auto', 'your-cam', 'pinned-cam', 'gallery-cam'];
+      const currentIndex = modes.indexOf(currentCamViewMode);
+      currentCamViewMode = modes[(currentIndex + 1) % modes.length];
+
+      applyCamViewMode();
+    }
+
+    function applyCamViewMode() {
+      const label = document.getElementById('camViewLabel');
+
+      // Reset utility classes
+      videoGrid.classList.remove('your-cam-mode');
+
+      if (currentCamViewMode === 'your-cam') {
+        label.textContent = "Cam: Yours";
+        videoGrid.classList.add('your-cam-mode');
+        viewIndicator.textContent = "Your Cam View";
+      } else if (currentCamViewMode === 'pinned-cam') {
+        label.textContent = "Cam: Pinned";
+        if (!pinnedCardId) {
+          togglePin('card-local'); // Default pin local if nothing pinned
+        }
+        viewIndicator.textContent = "Pinned Cam View";
+      } else if (currentCamViewMode === 'gallery-cam') {
+        label.textContent = "Cam: Gallery";
+        if (pinnedCardId) {
+          togglePin(pinnedCardId); // Unpin if currently pinned
+        }
+        viewIndicator.textContent = "Gallery View (Max 10)";
+      } else {
+        label.textContent = "Cam: Auto";
+        viewIndicator.textContent = pinnedCardId ? "Speaker / Pinned View" : "Gallery View (Max 10)";
+      }
+
+      showToast(`Switched view to: ${label.textContent}`);
+    }
+
     function toggleTheme() {
       isDarkMode = !isDarkMode;
       if (isDarkMode) {
@@ -1094,6 +1192,113 @@
         themeToggleBtn.textContent = '🌙 Dark Mode';
       }
       morePopover.classList.remove('active');
+    }
+
+    /* SCREEN RECORDING WITH BOTH SYSTEM/TAB AUDIO AND MICROPHONE INPUT */
+    async function toggleScreenRecording() {
+      morePopover.classList.remove('active');
+
+      if (!isRecording) {
+        try {
+          const displayStream = await navigator.mediaDevices.getDisplayMedia({
+            video: true,
+            audio: true
+          });
+
+          const tracks = [...displayStream.getVideoTracks()];
+
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          const dest = audioContext.createMediaStreamDestination();
+
+          if (displayStream.getAudioTracks().length > 0) {
+            const systemSource = audioContext.createMediaStreamSource(new MediaStream([displayStream.getAudioTracks()[0]]));
+            systemSource.connect(dest);
+          }
+
+          if (localStream && localStream.getAudioTracks().length > 0) {
+            const micSource = audioContext.createMediaStreamSource(new MediaStream([localStream.getAudioTracks()[0]]));
+            micSource.connect(dest);
+          }
+
+          const mixedAudioTrack = dest.stream.getAudioTracks()[0];
+          if (mixedAudioTrack) {
+            tracks.push(mixedAudioTrack);
+          }
+
+          recordStream = new MediaStream(tracks);
+          recordedChunks = [];
+
+          let options = { mimeType: 'video/webm;codecs=vp9,opus' };
+          if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+            options = { mimeType: 'video/webm' };
+          }
+
+          mediaRecorder = new MediaRecorder(recordStream, options);
+
+          mediaRecorder.ondataavailable = (event) => {
+            if (event.data && event.data.size > 0) {
+              recordedChunks.push(event.data);
+            }
+          };
+
+          mediaRecorder.onstop = saveRecordingToFile;
+
+          displayStream.getVideoTracks()[0].onended = () => {
+            if (isRecording) {
+              stopRecordingProcess();
+            }
+          };
+
+          mediaRecorder.start(1000);
+          isRecording = true;
+          recordScreenBtn.textContent = "⏹️ Stop Recording";
+          recordScreenBtn.classList.add('recording-active');
+          showToast("Screen & Mic Recording Started!");
+
+        } catch (err) {
+          console.error("Recording error:", err);
+          showToast("Recording cancelled or permission denied.");
+        }
+      } else {
+        stopRecordingProcess();
+      }
+    }
+
+    function stopRecordingProcess() {
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+      }
+      if (recordStream) {
+        recordStream.getTracks().forEach(track => track.stop());
+        recordStream = null;
+      }
+      if (audioContext) {
+        audioContext.close();
+        audioContext = null;
+      }
+      isRecording = false;
+      recordScreenBtn.textContent = "📹 Record Screen";
+      recordScreenBtn.classList.remove('recording-active');
+    }
+
+    function saveRecordingToFile() {
+      const blob = new Blob(recordedChunks, { type: 'video/webm' });
+      const url = URL.createObjectURL(blob);
+      
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.style.display = 'none';
+      downloadAnchor.href = url;
+      downloadAnchor.download = `rumeet-recording-${Date.now()}.webm`;
+      
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+
+      setTimeout(() => {
+        document.body.removeChild(downloadAnchor);
+        window.URL.revokeObjectURL(url);
+      }, 100);
+
+      showToast("Recording saved to files!");
     }
 
     function showToast(msg) {
@@ -1108,12 +1313,6 @@
       localAvatar.textContent = userName.charAt(0).toUpperCase();
     }
 
-    function setRemoteUserName(name) {
-      remoteUserName = name.trim() || 'Remote Peer';
-      remoteNameLabel.textContent = remoteUserName;
-      remoteAvatar.textContent = remoteUserName.charAt(0).toUpperCase();
-    }
-
     async function initMedia() {
       if (localStream) return;
       try {
@@ -1126,11 +1325,54 @@
     }
 
     function stopAllTracks() {
+      if (isRecording) stopRecordingProcess();
       if (localStream) localStream.getTracks().forEach(t => t.stop());
       if (screenStream) screenStream.getTracks().forEach(t => t.stop());
       if (peer) peer.destroy();
     }
     window.addEventListener('beforeunload', stopAllTracks);
+
+    // Dynamic Remote Video Card Generation (10-Max Compatibility)
+    function addPeerCard(peerId, name = 'Remote Peer') {
+      let card = document.getElementById(`card-${peerId}`);
+      if (card) return card;
+
+      card = document.createElement('div');
+      card.className = 'video-card';
+      card.id = `card-${peerId}`;
+
+      card.innerHTML = `
+        <video id="video-${peerId}" autoplay playsinline></video>
+        <div class="reaction-overlay" id="overlay-${peerId}"></div>
+        <div class="avatar-circle" id="avatar-${peerId}" style="display: none;">${name.charAt(0).toUpperCase()}</div>
+        <div class="nametag"><span id="nametag-${peerId}">${name}</span></div>
+        <div class="card-actions">
+          <button class="card-btn" onclick="togglePin('card-${peerId}')">📌 Pin</button>
+          <button class="card-btn" onclick="togglePip('video-${peerId}')">🖼️ PiP</button>
+        </div>
+      `;
+
+      videoGrid.appendChild(card);
+      return card;
+    }
+
+    function removePeerCard(peerId) {
+      const card = document.getElementById(`card-${peerId}`);
+      if (card) {
+        if (pinnedCardId === `card-${peerId}`) {
+          togglePin(`card-${peerId}`);
+        }
+        card.remove();
+      }
+    }
+
+    function broadcastData(data) {
+      Object.values(dataConns).forEach(conn => {
+        if (conn && conn.open) {
+          conn.send(data);
+        }
+      });
+    }
 
     function initPeerInstance(customId = null, displayCode = null) {
       return new Promise((resolve) => {
@@ -1144,79 +1386,129 @@
           resolve(assignedId);
         });
 
+        // Incoming Calls
         peer.on('call', (call) => {
-          activeCall = call;
+          if (Object.keys(calls).length >= MAX_PARTICIPANTS - 1) {
+            call.close();
+            return;
+          }
+          calls[call.peer] = call;
           call.answer(localStream);
-          call.on('stream', (stream) => { 
-            remoteVideo.srcObject = stream;
-            showToast("Peer connected!");
+
+          call.on('stream', (remoteStream) => {
+            const pName = peerNames[call.peer] || 'Remote Peer';
+            addPeerCard(call.peer, pName);
+            const vElem = document.getElementById(`video-${call.peer}`);
+            if (vElem) vElem.srcObject = remoteStream;
+          });
+
+          call.on('close', () => {
+            removePeerCard(call.peer);
+            delete calls[call.peer];
           });
         });
 
+        // Incoming Data Connections
         peer.on('connection', (conn) => {
-          dataConnection = conn;
-          setupDataChannel();
+          dataConns[conn.peer] = conn;
+          setupDataChannel(conn);
         });
 
         peer.on('error', (err) => {
           console.error("Peer Error:", err);
-          showToast("Error: " + err.type);
+          showToast("Connection Alert: " + err.type);
         });
       });
     }
 
     function connectToRemote(remoteId) {
-      if (!localStream) return;
+      if (Object.keys(calls).length >= MAX_PARTICIPANTS - 1) {
+        showToast("Room is full (Max 10 participants).");
+        return;
+      }
 
-      activeCall = peer.call(remoteId, localStream);
-      if (activeCall) {
-        activeCall.on('stream', (stream) => {
-          remoteVideo.srcObject = stream;
-          showToast("Connected to peer video stream.");
+      if (!calls[remoteId] && localStream) {
+        const call = peer.call(remoteId, localStream);
+        calls[remoteId] = call;
+
+        call.on('stream', (remoteStream) => {
+          const pName = peerNames[remoteId] || 'Remote Peer';
+          addPeerCard(remoteId, pName);
+          const vElem = document.getElementById(`video-${remoteId}`);
+          if (vElem) vElem.srcObject = remoteStream;
+        });
+
+        call.on('close', () => {
+          removePeerCard(remoteId);
+          delete calls[remoteId];
         });
       }
 
-      dataConnection = peer.connect(remoteId);
-      setupDataChannel();
+      if (!dataConns[remoteId]) {
+        const conn = peer.connect(remoteId);
+        dataConns[remoteId] = conn;
+        setupDataChannel(conn);
+      }
     }
 
-    function setupDataChannel() {
-      if (!dataConnection) return;
-
-      dataConnection.on('open', () => {
-        dataConnection.send({ type: 'meta', name: userName, videoOff: isVideoOff });
+    function setupDataChannel(conn) {
+      conn.on('open', () => {
+        conn.send({ 
+          type: 'meta', 
+          name: userName, 
+          videoOff: isVideoOff,
+          peerList: [peer.id, ...Object.keys(dataConns)]
+        });
       });
 
-      dataConnection.on('data', (data) => {
+      conn.on('data', (data) => {
         if (data.type === 'meta') {
-          if (data.name) setRemoteUserName(data.name);
-          updateRemoteVideoState(data.videoOff);
+          peerNames[conn.peer] = data.name || 'Remote Peer';
+          const nElem = document.getElementById(`nametag-${conn.peer}`);
+          const aElem = document.getElementById(`avatar-${conn.peer}`);
+          if (nElem) nElem.textContent = peerNames[conn.peer];
+          if (aElem) aElem.textContent = peerNames[conn.peer].charAt(0).toUpperCase();
+
+          updateRemoteVideoState(conn.peer, data.videoOff);
+
+          if (Array.isArray(data.peerList)) {
+            data.peerList.forEach(pId => {
+              if (pId !== peer.id && !dataConns[pId]) {
+                connectToRemote(pId);
+              }
+            });
+          }
         } else if (data.type === 'video-toggle') {
-          updateRemoteVideoState(data.videoOff);
+          updateRemoteVideoState(conn.peer, data.videoOff);
         } else if (data.type === 'chat') {
-          appendMessage(remoteUserName, data.text, false);
+          appendMessage(data.sender || peerNames[conn.peer] || 'Peer', data.text, false);
           chatSidebar.classList.remove('hidden');
         } else if (data.type === 'reaction') {
-          displayFloatingEmoji('remoteReactionOverlay', data.emoji);
+          displayFloatingEmoji(`overlay-${conn.peer}`, data.emoji);
         } else if (data.type === 'draw') {
           drawRemoteLine(data);
         } else if (data.type === 'clear-wb') {
           clearCanvasLocal();
         }
       });
+
+      conn.on('close', () => {
+        removePeerCard(conn.peer);
+        delete dataConns[conn.peer];
+        delete peerNames[conn.peer];
+      });
     }
 
     // Reaction Flow
     function triggerEmojiReaction(emoji) {
-      displayFloatingEmoji('localReactionOverlay', emoji);
-      if (dataConnection && dataConnection.open) {
-        dataConnection.send({ type: 'reaction', emoji: emoji });
-      }
+      displayFloatingEmoji('overlay-local', emoji);
+      broadcastData({ type: 'reaction', emoji: emoji });
       morePopover.classList.remove('active');
     }
 
     function displayFloatingEmoji(overlayId, emoji) {
       const overlay = document.getElementById(overlayId);
+      if (!overlay) return;
       const span = document.createElement('span');
       span.className = 'floating-emoji';
       span.textContent = emoji;
@@ -1266,16 +1558,14 @@
 
       drawStroke(prevX, prevY, currX, currY, wbColor.value);
 
-      if (dataConnection && dataConnection.open) {
-        dataConnection.send({
-          type: 'draw',
-          x0: prevX / wbCanvas.width,
-          y0: prevY / wbCanvas.height,
-          x1: currX / wbCanvas.width,
-          y1: currY / wbCanvas.height,
-          color: wbColor.value
-        });
-      }
+      broadcastData({
+        type: 'draw',
+        x0: prevX / wbCanvas.width,
+        y0: prevY / wbCanvas.height,
+        x1: currX / wbCanvas.width,
+        y1: currY / wbCanvas.height,
+        color: wbColor.value
+      });
 
       prevX = currX;
       prevY = currY;
@@ -1304,9 +1594,7 @@
 
     clearWbBtn.addEventListener('click', () => {
       clearCanvasLocal();
-      if (dataConnection && dataConnection.open) {
-        dataConnection.send({ type: 'clear-wb' });
-      }
+      broadcastData({ type: 'clear-wb' });
     });
 
     function clearCanvasLocal() {
@@ -1369,9 +1657,7 @@
       if (!text) return;
 
       appendMessage(userName, text, true);
-      if (dataConnection && dataConnection.open) {
-        dataConnection.send({ type: 'chat', text: text });
-      }
+      broadcastData({ type: 'chat', text: text, sender: userName });
       chatInput.value = '';
     }
 
@@ -1390,14 +1676,12 @@
       return str.replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
     }
 
-    /* HARDWARE CAMERA DISABLE & RE-ENABLE FUNCTIONALITY */
     async function updateLocalVideoState(off) {
       isVideoOff = off;
       document.getElementById('videoLabel').textContent = isVideoOff ? "Start Video" : "Stop Video";
       stopVideoBtn.classList.toggle('active', isVideoOff);
 
       if (isVideoOff) {
-        // Stop hardware track completely (Turns off green/red system camera indicator light)
         if (cameraTrack) {
           cameraTrack.stop();
           if (localStream) localStream.removeTrack(cameraTrack);
@@ -1407,13 +1691,13 @@
         localVideo.classList.add('hidden-video');
         localAvatar.style.display = 'flex';
 
-        // Notify PeerConnection that video track is removed
-        if (activeCall && activeCall.peerConnection) {
-          const sender = activeCall.peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
-          if (sender) activeCall.peerConnection.removeTrack(sender);
-        }
+        Object.values(calls).forEach(call => {
+          if (call.peerConnection) {
+            const sender = call.peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
+            if (sender) call.peerConnection.removeTrack(sender);
+          }
+        });
       } else {
-        // Re-request system camera hardware permission & stream
         try {
           const newVideoStream = await navigator.mediaDevices.getUserMedia({ video: true });
           cameraTrack = newVideoStream.getVideoTracks()[0];
@@ -1428,15 +1712,16 @@
           localVideo.classList.remove('hidden-video');
           localAvatar.style.display = 'none';
 
-          // Update active WebRTC connection sender
-          if (activeCall && activeCall.peerConnection) {
-            const sender = activeCall.peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
-            if (sender) {
-              sender.replaceTrack(cameraTrack);
-            } else {
-              activeCall.peerConnection.addTrack(cameraTrack, localStream);
+          Object.values(calls).forEach(call => {
+            if (call.peerConnection) {
+              const sender = call.peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
+              if (sender) {
+                sender.replaceTrack(cameraTrack);
+              } else {
+                call.peerConnection.addTrack(cameraTrack, localStream);
+              }
             }
-          }
+          });
         } catch (err) {
           console.error("Camera re-enable error:", err);
           showToast("Unable to start system camera.");
@@ -1447,20 +1732,21 @@
         }
       }
 
-      if (dataConnection && dataConnection.open) {
-        dataConnection.send({ type: 'video-toggle', videoOff: isVideoOff });
-      }
-
+      broadcastData({ type: 'video-toggle', videoOff: isVideoOff });
       updateMasterAvButtonState();
     }
 
-    function updateRemoteVideoState(off) {
+    function updateRemoteVideoState(peerId, off) {
+      const vElem = document.getElementById(`video-${peerId}`);
+      const aElem = document.getElementById(`avatar-${peerId}`);
+      if (!vElem || !aElem) return;
+
       if (off) {
-        remoteVideo.classList.add('hidden-video');
-        remoteAvatar.style.display = 'flex';
+        vElem.classList.add('hidden-video');
+        aElem.style.display = 'flex';
       } else {
-        remoteVideo.classList.remove('hidden-video');
-        remoteAvatar.style.display = 'none';
+        vElem.classList.remove('hidden-video');
+        aElem.style.display = 'none';
       }
     }
 
@@ -1487,13 +1773,18 @@
 
     function togglePin(cardId) {
       const card = document.getElementById(cardId);
+      if (!card) return;
+
       if (pinnedCardId === cardId) {
         card.classList.remove('is-pinned');
         videoGrid.classList.remove('pinned-mode');
         pinnedCardId = null;
-        viewIndicator.textContent = "Gallery View";
+        viewIndicator.textContent = "Gallery View (Max 10)";
       } else {
-        if (pinnedCardId) document.getElementById(pinnedCardId).classList.remove('is-pinned');
+        if (pinnedCardId) {
+          const oldCard = document.getElementById(pinnedCardId);
+          if (oldCard) oldCard.classList.remove('is-pinned');
+        }
         card.classList.add('is-pinned');
         videoGrid.classList.add('pinned-mode');
         pinnedCardId = cardId;
@@ -1516,16 +1807,25 @@
       }
     }
 
+    /* SHARE SCREEN WITH AUDIO SUPPORT */
     async function toggleShareScreen() {
       if (!isSharingScreen) {
         try {
-          screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+          screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
           const screenTrack = screenStream.getVideoTracks()[0];
+          const screenAudioTrack = screenStream.getAudioTracks()[0];
 
-          if (activeCall && activeCall.peerConnection) {
-            const sender = activeCall.peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
-            if (sender) sender.replaceTrack(screenTrack);
-          }
+          Object.values(calls).forEach(call => {
+            if (call.peerConnection) {
+              const sender = call.peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
+              if (sender) sender.replaceTrack(screenTrack);
+
+              if (screenAudioTrack) {
+                const audioSender = call.peerConnection.getSenders().find(s => s.track && s.track.kind === 'audio');
+                if (audioSender) audioSender.replaceTrack(screenAudioTrack);
+              }
+            }
+          });
 
           localVideo.srcObject = screenStream;
           localVideo.classList.remove('local-mirror');
@@ -1535,7 +1835,7 @@
 
           screenTrack.onended = () => stopScreenSharing();
         } catch (err) {
-          console.error(err);
+          console.error("Screen share error:", err);
         }
       } else {
         stopScreenSharing();
@@ -1548,9 +1848,19 @@
         screenStream = null;
       }
 
-      if (cameraTrack && activeCall && activeCall.peerConnection) {
-        const sender = activeCall.peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
-        if (sender) sender.replaceTrack(cameraTrack);
+      if (cameraTrack) {
+        const audioTrack = localStream ? localStream.getAudioTracks()[0] : null;
+        Object.values(calls).forEach(call => {
+          if (call.peerConnection) {
+            const sender = call.peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
+            if (sender) sender.replaceTrack(cameraTrack);
+
+            if (audioTrack) {
+              const audioSender = call.peerConnection.getSenders().find(s => s.track && s.track.kind === 'audio');
+              if (audioSender) audioSender.replaceTrack(audioTrack);
+            }
+          }
+        });
       }
 
       localVideo.srcObject = localStream;
@@ -1623,7 +1933,7 @@
 
       setUserName(name);
       modalOverlay.style.display = 'none';
-      await initPeerInstance(null, targetCode); 
+      await initPeerInstance(); 
       connectToRemote(targetCode);
     });
 
