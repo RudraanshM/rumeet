@@ -125,12 +125,6 @@
       justify-content: center;
     }
 
-    .video-grid.pinned-mode {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
     .video-grid.your-cam-mode .video-card:not(#card-local) {
       display: none !important;
     }
@@ -153,16 +147,6 @@
       flex: 1 1 100%;
       height: 100%;
       border-color: #f59e0b;
-    }
-
-    .pinned-mode .video-card:not(.is-pinned) {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-      width: 220px;
-      height: 130px;
-      z-index: 5;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.8);
     }
 
     video {
@@ -226,12 +210,6 @@
       text-transform: uppercase;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
       user-select: none;
-    }
-
-    .pinned-mode .video-card:not(.is-pinned) .avatar-circle {
-      width: 50px;
-      height: 50px;
-      font-size: 1.3rem;
     }
 
     /* Name Tag Overlay */
@@ -1081,6 +1059,7 @@
     // State Variables
     let peer = null;
     let localStream = null;
+    let cameraTrack = null;
     
     // Multi-peer Mesh Connection Maps
     const calls = {};          // peerId -> MediaConnection
@@ -1096,7 +1075,6 @@
     let isSharingScreen = false;
     let pinnedCardId = null;
     let screenStream = null;
-    let screenAudioMixerContext = null;
     let isDarkMode = true;
 
     // Cam View Switcher Mode: 'auto', 'your-cam', 'pinned-cam', 'gallery-cam'
@@ -1318,6 +1296,7 @@
       try {
         localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localVideo.srcObject = localStream;
+        cameraTrack = localStream.getVideoTracks()[0];
       } catch (err) {
         alert("Camera and Microphone permissions are required.");
       }
@@ -1675,22 +1654,60 @@
       return str.replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
     }
 
-    // Video toggle using track.enabled
-    function updateLocalVideoState(off) {
+    async function updateLocalVideoState(off) {
       isVideoOff = off;
       document.getElementById('videoLabel').textContent = isVideoOff ? "Start Video" : "Stop Video";
       stopVideoBtn.classList.toggle('active', isVideoOff);
 
-      if (localStream && localStream.getVideoTracks().length > 0) {
-        localStream.getVideoTracks()[0].enabled = !isVideoOff;
-      }
-
       if (isVideoOff) {
+        if (cameraTrack) {
+          cameraTrack.stop();
+          if (localStream) localStream.removeTrack(cameraTrack);
+          cameraTrack = null;
+        }
+        
         localVideo.classList.add('hidden-video');
         localAvatar.style.display = 'flex';
+
+        Object.values(calls).forEach(call => {
+          if (call.peerConnection) {
+            const sender = call.peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
+            if (sender) call.peerConnection.removeTrack(sender);
+          }
+        });
       } else {
-        localVideo.classList.remove('hidden-video');
-        localAvatar.style.display = 'none';
+        try {
+          const newVideoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+          cameraTrack = newVideoStream.getVideoTracks()[0];
+          
+          if (localStream) {
+            localStream.addTrack(cameraTrack);
+          } else {
+            localStream = newVideoStream;
+          }
+          
+          localVideo.srcObject = localStream;
+          localVideo.classList.remove('hidden-video');
+          localAvatar.style.display = 'none';
+
+          Object.values(calls).forEach(call => {
+            if (call.peerConnection) {
+              const sender = call.peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
+              if (sender) {
+                sender.replaceTrack(cameraTrack);
+              } else {
+                call.peerConnection.addTrack(cameraTrack, localStream);
+              }
+            }
+          });
+        } catch (err) {
+          console.error("Camera re-enable error:", err);
+          showToast("Unable to start system camera.");
+          isVideoOff = true;
+          document.getElementById('videoLabel').textContent = "Start Video";
+          stopVideoBtn.classList.add('active');
+          return;
+        }
       }
 
       broadcastData({ type: 'video-toggle', videoOff: isVideoOff });
@@ -1711,12 +1728,10 @@
       }
     }
 
-    // Audio toggle using track.enabled
     function updateAudioState(muted) {
       isAudioMuted = muted;
-      if (localStream && localStream.getAudioTracks().length > 0) {
-        localStream.getAudioTracks()[0].enabled = !isAudioMuted;
-      }
+      const track = localStream ? localStream.getAudioTracks()[0] : null;
+      if (track) track.enabled = !isAudioMuted;
 
       document.getElementById('audioLabel').textContent = isAudioMuted ? "Unmute" : "Mute";
       muteAudioBtn.classList.toggle('active', isAudioMuted);
@@ -1740,7 +1755,6 @@
 
       if (pinnedCardId === cardId) {
         card.classList.remove('is-pinned');
-        videoGrid.classList.remove('pinned-mode');
         pinnedCardId = null;
         viewIndicator.textContent = "Gallery View (Max 10)";
       } else {
@@ -1749,7 +1763,6 @@
           if (oldCard) oldCard.classList.remove('is-pinned');
         }
         card.classList.add('is-pinned');
-        videoGrid.classList.add('pinned-mode');
         pinnedCardId = cardId;
         viewIndicator.textContent = "Speaker / Pinned View";
       }
@@ -1770,53 +1783,22 @@
       }
     }
 
-    /* SHARE SCREEN WITH AUDIO MIXING SUPPORT */
+    /* SHARE SCREEN WITH AUDIO SUPPORT */
     async function toggleShareScreen() {
       if (!isSharingScreen) {
         try {
-          screenStream = await navigator.mediaDevices.getDisplayMedia({
-            video: true,
-            audio: {
-              echoCancellation: false,
-              noiseSuppression: false,
-              autoGainControl: false
-            }
-          });
-
-          const screenVideoTrack = screenStream.getVideoTracks()[0];
+          screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+          const screenTrack = screenStream.getVideoTracks()[0];
           const screenAudioTrack = screenStream.getAudioTracks()[0];
 
-          if (!screenAudioTrack) {
-            showToast("Note: No tab/system audio selected in screen picker.");
-          }
-
-          // Mix Screen Audio + Mic Audio using AudioContext
-          screenAudioMixerContext = new (window.AudioContext || window.webkitAudioContext)();
-          const dest = screenAudioMixerContext.createMediaStreamDestination();
-
-          if (screenAudioTrack) {
-            const screenSource = screenAudioMixerContext.createMediaStreamSource(new MediaStream([screenAudioTrack]));
-            screenSource.connect(dest);
-          }
-
-          if (localStream && localStream.getAudioTracks().length > 0) {
-            const micSource = screenAudioMixerContext.createMediaStreamSource(new MediaStream([localStream.getAudioTracks()[0]]));
-            micSource.connect(dest);
-          }
-
-          const mixedAudioTrack = dest.stream.getAudioTracks()[0];
-
-          // Broadcast to connected peers
           Object.values(calls).forEach(call => {
             if (call.peerConnection) {
-              const videoSender = call.peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
-              if (videoSender && screenVideoTrack) {
-                videoSender.replaceTrack(screenVideoTrack);
-              }
+              const sender = call.peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
+              if (sender) sender.replaceTrack(screenTrack);
 
-              const audioSender = call.peerConnection.getSenders().find(s => s.track && s.track.kind === 'audio');
-              if (audioSender && mixedAudioTrack) {
-                audioSender.replaceTrack(mixedAudioTrack);
+              if (screenAudioTrack) {
+                const audioSender = call.peerConnection.getSenders().find(s => s.track && s.track.kind === 'audio');
+                if (audioSender) audioSender.replaceTrack(screenAudioTrack);
               }
             }
           });
@@ -1827,11 +1809,9 @@
           shareScreenBtn.classList.add('sharing');
           document.getElementById('shareLabel').textContent = "Stop Share";
 
-          screenVideoTrack.onended = () => stopScreenSharing();
-
+          screenTrack.onended = () => stopScreenSharing();
         } catch (err) {
           console.error("Screen share error:", err);
-          showToast("Screen share cancelled or failed.");
         }
       } else {
         stopScreenSharing();
@@ -1844,27 +1824,20 @@
         screenStream = null;
       }
 
-      if (screenAudioMixerContext) {
-        screenAudioMixerContext.close();
-        screenAudioMixerContext = null;
+      if (cameraTrack) {
+        const audioTrack = localStream ? localStream.getAudioTracks()[0] : null;
+        Object.values(calls).forEach(call => {
+          if (call.peerConnection) {
+            const sender = call.peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
+            if (sender) sender.replaceTrack(cameraTrack);
+
+            if (audioTrack) {
+              const audioSender = call.peerConnection.getSenders().find(s => s.track && s.track.kind === 'audio');
+              if (audioSender) audioSender.replaceTrack(audioTrack);
+            }
+          }
+        });
       }
-
-      const cameraTrack = localStream ? localStream.getVideoTracks()[0] : null;
-      const audioTrack = localStream ? localStream.getAudioTracks()[0] : null;
-
-      Object.values(calls).forEach(call => {
-        if (call.peerConnection) {
-          if (cameraTrack) {
-            const videoSender = call.peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
-            if (videoSender) videoSender.replaceTrack(cameraTrack);
-          }
-
-          if (audioTrack) {
-            const audioSender = call.peerConnection.getSenders().find(s => s.track && s.track.kind === 'audio');
-            if (audioSender) audioSender.replaceTrack(audioTrack);
-          }
-        }
-      });
 
       localVideo.srcObject = localStream;
       localVideo.classList.add('local-mirror');
