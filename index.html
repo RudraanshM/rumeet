@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Rumeet - Global P2P</title>
   
-  <!-- PeerJS Library for WebRTC Signaling & Data Cannels -->
+  <!-- PeerJS Library for WebRTC Signaling & Data Channels -->
   <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 
   <style>
@@ -24,7 +24,6 @@
       --stage-bg: #000000;
     }
 
-    /* Light Mode Variables */
     body.light-theme {
       --bg-main: #f3f4f6;
       --bg-header: #ffffff;
@@ -57,7 +56,6 @@
       transition: background-color 0.3s, color 0.3s;
     }
 
-    /* Top Header Bar */
     header {
       height: 44px;
       background-color: var(--bg-header);
@@ -93,7 +91,6 @@
       color: var(--text-muted);
     }
 
-    /* Main Content Area */
     .app-body {
       flex: 1;
       display: flex;
@@ -101,7 +98,6 @@
       overflow: hidden;
     }
 
-    /* Video Canvas Grid */
     .video-stage {
       flex: 1;
       padding: 1rem;
@@ -110,13 +106,12 @@
       justify-content: center;
       position: relative;
       background-color: var(--stage-bg);
-      transition: all 0.3s ease;
       overflow: hidden;
     }
 
     .video-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
       gap: 12px;
       width: 100%;
       height: 100%;
@@ -138,14 +133,15 @@
       align-items: center;
       justify-content: center;
       border: 2px solid transparent;
-      transition: border-color 0.2s, flex 0.3s ease, background 0.3s;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       min-height: 180px;
+      max-height: 100%;
     }
 
     .video-card.is-pinned {
-      flex: 1 1 100%;
-      height: 100%;
+      grid-column: 1 / -1;
+      grid-row: 1 / -1;
+      z-index: 5;
       border-color: #f59e0b;
     }
 
@@ -163,7 +159,6 @@
       transform: scaleX(-1);
     }
 
-    /* Floating Reaction Overlay Container */
     .reaction-overlay {
       position: absolute;
       inset: 0;
@@ -181,21 +176,11 @@
     }
 
     @keyframes floatUp {
-      0% {
-        transform: translateY(0) scale(0.6);
-        opacity: 0;
-      }
-      20% {
-        opacity: 1;
-        transform: translateY(-20px) scale(1.2);
-      }
-      100% {
-        transform: translateY(-220px) scale(1);
-        opacity: 0;
-      }
+      0% { transform: translateY(0) scale(0.6); opacity: 0; }
+      20% { opacity: 1; transform: translateY(-20px) scale(1.2); }
+      100% { transform: translateY(-220px) scale(1); opacity: 0; }
     }
 
-    /* Avatar Circle Display when Video is Off */
     .avatar-circle {
       width: 80px;
       height: 80px;
@@ -212,7 +197,6 @@
       user-select: none;
     }
 
-    /* Name Tag Overlay */
     .nametag {
       position: absolute;
       bottom: 10px;
@@ -257,14 +241,12 @@
       background: #2563eb;
     }
 
-    /* Chat & Right Sidebar */
     .chat-sidebar {
       width: 340px;
       background: var(--bg-sidebar);
       border-left: 1px solid var(--border-color);
       display: flex;
       flex-direction: column;
-      transition: margin-right 0.3s ease, background 0.3s;
       z-index: 12;
     }
 
@@ -341,11 +323,6 @@
       font-size: 0.85rem;
     }
 
-    .chat-input-area input:focus {
-      border-color: #0e71eb;
-    }
-
-    /* Modal Overlays (Whiteboard, Calculator, Wikipedia) */
     .overlay-modal {
       position: absolute;
       inset: 20px;
@@ -395,7 +372,6 @@
       border-bottom-right-radius: 12px;
     }
 
-    /* Calculator Styles */
     .calc-modal {
       width: 300px;
       height: 420px;
@@ -446,25 +422,11 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: background 0.15s;
     }
 
-    .calc-btn:hover {
-      opacity: 0.8;
-    }
+    .calc-btn.op { background: #f59e0b; color: black; font-weight: bold; }
+    .calc-btn.danger { background: #dc2626; color: white; }
 
-    .calc-btn.op {
-      background: #f59e0b;
-      color: black;
-      font-weight: bold;
-    }
-
-    .calc-btn.danger {
-      background: #dc2626;
-      color: white;
-    }
-
-    /* Wikipedia Iframe Styles */
     .wiki-body {
       flex: 1;
       display: flex;
@@ -499,7 +461,6 @@
       border: none;
     }
 
-    /* Bottom Control Dock */
     .zoom-controls {
       height: 72px;
       background: var(--bg-header);
@@ -518,31 +479,11 @@
       gap: 12px;
     }
 
-    /* LIQUID UI BUTTON STYLES */
     .z-btn, .btn-zoom-blue, .btn-end, .card-btn, .popover-item {
       position: relative;
       overflow: hidden;
       transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       backdrop-filter: blur(8px);
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-    }
-
-    .z-btn::after, .btn-zoom-blue::after, .btn-end::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 0;
-      height: 0;
-      background: rgba(255, 255, 255, 0.3);
-      border-radius: 50%;
-      transform: translate(-50%, -50%);
-      transition: width 0.4s ease-out, height 0.4s ease-out;
-    }
-
-    .z-btn:active::after, .btn-zoom-blue:active::after, .btn-end:active::after {
-      width: 200px;
-      height: 200px;
     }
 
     .z-btn {
@@ -564,15 +505,9 @@
     .z-btn:hover {
       background: rgba(255, 255, 255, 0.15);
       color: var(--text-main);
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
     }
 
-    .z-btn svg {
-      width: 20px;
-      height: 20px;
-      fill: currentColor;
-    }
+    .z-btn svg { width: 20px; height: 20px; fill: currentColor; }
 
     .z-btn.active {
       color: #ef4444;
@@ -583,11 +518,6 @@
     .z-btn-share {
       color: #10b981;
       border-color: rgba(16, 185, 129, 0.3);
-    }
-
-    .z-btn-share:hover {
-      background: rgba(16, 185, 129, 0.25);
-      color: #10b981;
     }
 
     .z-btn-share.sharing {
@@ -606,15 +536,7 @@
       cursor: pointer;
     }
 
-    .btn-end:hover {
-      background: linear-gradient(135deg, #dc2626, #b91c1c);
-      transform: translateY(-1px);
-    }
-
-    /* Popover More Menu */
-    .more-menu-container {
-      position: relative;
-    }
+    .more-menu-container { position: relative; }
 
     .more-popover {
       position: absolute;
@@ -633,9 +555,7 @@
       z-index: 100;
     }
 
-    .more-popover.active {
-      display: flex;
-    }
+    .more-popover.active { display: flex; }
 
     .popover-item {
       background: transparent;
@@ -652,21 +572,7 @@
       width: 100%;
     }
 
-    .popover-item:hover {
-      background: var(--bg-input);
-    }
-
-    .popover-item.recording-active {
-      color: #ef4444;
-      font-weight: bold;
-      animation: pulseRecord 1.5s infinite;
-    }
-
-    @keyframes pulseRecord {
-      0% { opacity: 1; }
-      50% { opacity: 0.5; }
-      100% { opacity: 1; }
-    }
+    .popover-item:hover { background: var(--bg-input); }
 
     .reaction-bar {
       display: flex;
@@ -678,14 +584,8 @@
     .reaction-bar span {
       font-size: 1.4rem;
       cursor: pointer;
-      transition: transform 0.15s;
     }
 
-    .reaction-bar span:hover {
-      transform: scale(1.3);
-    }
-
-    /* Startup Modal */
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -702,44 +602,16 @@
       padding: 2rem;
       width: 420px;
       text-align: center;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
       border: 1px solid var(--border-color);
     }
 
-    /* RGB Rainbow Neon Title Styles */
     .rainbow-glow-title {
       font-size: 2.5rem;
       font-weight: 900;
-      letter-spacing: -1px;
       margin-bottom: 1.5rem;
-      background: linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #00ffff, #0000ff, #8b00ff, #ff0000);
-      background-size: 200% auto;
+      background: linear-gradient(135deg, #ff007f, #00f0ff, #00ff66);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      animation: rgbGlowSweep 5s linear infinite;
-    }
-
-    @keyframes rgbGlowSweep {
-      0% {
-        background-position: 0% center;
-        filter: drop-shadow(0 0 10px rgba(255, 0, 0, 0.8));
-      }
-      50% {
-        background-position: 100% center;
-        filter: drop-shadow(0 0 20px rgba(0, 255, 255, 0.8));
-      }
-      100% {
-        background-position: 200% center;
-        filter: drop-shadow(0 0 10px rgba(255, 0, 0, 0.8));
-      }
-    }
-
-    .rainbow-glow-title.still-neon {
-      animation: none !important;
-      background: linear-gradient(135deg, #ff007f, #00f0ff, #00ff66) !important;
-      -webkit-background-clip: text !important;
-      -webkit-text-fill-color: transparent !important;
-      filter: drop-shadow(0 0 12px #ff007f) drop-shadow(0 0 20px #00f0ff) !important;
     }
 
     .input-field {
@@ -754,10 +626,6 @@
       font-size: 0.9rem;
     }
 
-    .input-field:focus {
-      border-color: #ff007f;
-    }
-
     .btn-zoom-blue {
       width: 100%;
       background: linear-gradient(90deg, #0e71eb, #1d4ed8);
@@ -768,21 +636,12 @@
       font-weight: 600;
       cursor: pointer;
       font-size: 0.9rem;
-      transition: opacity 0.2s;
-    }
-
-    .btn-zoom-blue:hover {
-      opacity: 0.9;
     }
 
     .btn-secondary {
       background: var(--bg-input);
       color: var(--text-main);
       margin-top: 0.4rem;
-    }
-
-    .btn-secondary:hover {
-      opacity: 0.8;
     }
 
     .toast {
@@ -797,7 +656,6 @@
       font-size: 0.85rem;
       z-index: 200;
       display: none;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.4);
     }
 
     .msg-preview {
@@ -857,22 +715,18 @@
             <button class="calc-btn" onclick="calcInput('(')">(</button>
             <button class="calc-btn" onclick="calcInput(')')">)</button>
             <button class="calc-btn op" onclick="calcInput('/')">÷</button>
-
             <button class="calc-btn" onclick="calcInput('7')">7</button>
             <button class="calc-btn" onclick="calcInput('8')">8</button>
             <button class="calc-btn" onclick="calcInput('9')">9</button>
             <button class="calc-btn op" onclick="calcInput('*')">×</button>
-
             <button class="calc-btn" onclick="calcInput('4')">4</button>
             <button class="calc-btn" onclick="calcInput('5')">5</button>
             <button class="calc-btn" onclick="calcInput('6')">6</button>
             <button class="calc-btn op" onclick="calcInput('-')">-</button>
-
             <button class="calc-btn" onclick="calcInput('1')">1</button>
             <button class="calc-btn" onclick="calcInput('2')">2</button>
             <button class="calc-btn" onclick="calcInput('3')">3</button>
             <button class="calc-btn op" onclick="calcInput('+')">+</button>
-
             <button class="calc-btn" onclick="calcInput('0')">0</button>
             <button class="calc-btn" onclick="calcInput('.')">.</button>
             <button class="calc-btn danger" onclick="deleteCalc()">⌫</button>
@@ -896,10 +750,8 @@
         </div>
       </div>
 
-      <!-- Dynamic Video Stage Grid (Up to 10 Participants) -->
+      <!-- Video Grid -->
       <div class="video-grid" id="videoGrid">
-        
-        <!-- Local Video Card -->
         <div class="video-card" id="card-local">
           <video id="localVideo" class="local-mirror" autoplay playsinline muted></video>
           <div class="reaction-overlay" id="overlay-local"></div>
@@ -910,7 +762,6 @@
             <button class="card-btn" onclick="togglePip('localVideo')">🖼️ PiP</button>
           </div>
         </div>
-
       </div>
     </div>
 
@@ -946,7 +797,6 @@
         <span id="masterAvLabel">AV Off</span>
       </button>
 
-      <!-- CAM VIEW SWITCHER BUTTON -->
       <button class="z-btn" id="switchCamViewBtn" onclick="cycleCamView()">
         <svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 9l5 3-5 3z"/></svg>
         <span id="camViewLabel">Cam: Auto</span>
@@ -964,7 +814,6 @@
         <span>Chat</span>
       </button>
 
-      <!-- More Options Popover Menu -->
       <div class="more-menu-container">
         <button class="z-btn" id="moreOptionsBtn">
           <svg viewBox="0 0 24 24"><path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
@@ -994,7 +843,7 @@
     </div>
   </div>
 
-  <!-- Startup Modal Overlay -->
+  <!-- Startup Modals -->
   <div class="modal-overlay" id="modalOverlay">
     <div class="zoom-card" id="initialChoiceCard">
       <div class="rainbow-glow-title">Rumeet</div>
@@ -1038,12 +887,6 @@
   <script>
     const MAX_PARTICIPANTS = 10;
 
-    window.addEventListener('load', () => {
-      setTimeout(() => {
-        document.querySelectorAll('.rainbow-glow-title').forEach(el => el.classList.add('still-neon'));
-      }, 5000);
-    });
-
     const peerConfig = {
       config: {
         iceServers: [
@@ -1056,15 +899,13 @@
       }
     };
 
-    // State Variables
     let peer = null;
     let localStream = null;
     let cameraTrack = null;
     
-    // Multi-peer Mesh Connection Maps
-    const calls = {};          // peerId -> MediaConnection
-    const dataConns = {};      // peerId -> DataConnection
-    const peerNames = {};      // peerId -> Name string
+    const calls = {};          
+    const dataConns = {};      
+    const peerNames = {};      
 
     let meetingCode = '';
     let userName = 'User';
@@ -1076,27 +917,21 @@
     let pinnedCardId = null;
     let screenStream = null;
     let isDarkMode = true;
-
-    // Cam View Switcher Mode: 'auto', 'your-cam', 'pinned-cam', 'gallery-cam'
     let currentCamViewMode = 'auto';
 
-    // Recording Variables
     let mediaRecorder = null;
     let recordedChunks = [];
     let isRecording = false;
     let recordStream = null;
     let audioContext = null;
 
-    // Elements
     const localVideo = document.getElementById('localVideo');
     const localAvatar = document.getElementById('avatar-local');
     const localNameLabel = document.getElementById('localNameLabel');
-
     const muteAudioBtn = document.getElementById('muteAudioBtn');
     const stopVideoBtn = document.getElementById('stopVideoBtn');
     const masterAvBtn = document.getElementById('masterAvBtn');
     const masterAvLabel = document.getElementById('masterAvLabel');
-
     const shareScreenBtn = document.getElementById('shareScreenBtn');
     const chatToggleBtn = document.getElementById('chatToggleBtn');
     const chatSidebar = document.getElementById('chatSidebar');
@@ -1104,16 +939,13 @@
     const chatInput = document.getElementById('chatInput');
     const themeToggleBtn = document.getElementById('themeToggleBtn');
     const recordScreenBtn = document.getElementById('recordScreenBtn');
-
     const moreOptionsBtn = document.getElementById('moreOptionsBtn');
     const morePopover = document.getElementById('morePopover');
-
     const modalOverlay = document.getElementById('modalOverlay');
     const initialChoiceCard = document.getElementById('initialChoiceCard');
     const createCard = document.getElementById('createCard');
     const joinCard = document.getElementById('joinCard');
     const inviteGenCard = document.getElementById('inviteGenCard');
-
     const meetingTitle = document.getElementById('meetingTitle');
     const shareMeetingBtn = document.getElementById('shareMeetingBtn');
     const videoGrid = document.getElementById('videoGrid');
@@ -1121,19 +953,15 @@
     const endCallBtn = document.getElementById('endCallBtn');
     const toast = document.getElementById('toast');
 
-    /* CAM VIEW SWITCHER FUNCTIONALITY */
     function cycleCamView() {
       const modes = ['auto', 'your-cam', 'pinned-cam', 'gallery-cam'];
       const currentIndex = modes.indexOf(currentCamViewMode);
       currentCamViewMode = modes[(currentIndex + 1) % modes.length];
-
       applyCamViewMode();
     }
 
     function applyCamViewMode() {
       const label = document.getElementById('camViewLabel');
-
-      // Reset utility classes
       videoGrid.classList.remove('your-cam-mode');
 
       if (currentCamViewMode === 'your-cam') {
@@ -1142,47 +970,31 @@
         viewIndicator.textContent = "Your Cam View";
       } else if (currentCamViewMode === 'pinned-cam') {
         label.textContent = "Cam: Pinned";
-        if (!pinnedCardId) {
-          togglePin('card-local'); // Default pin local if nothing pinned
-        }
+        if (!pinnedCardId) togglePin('card-local');
         viewIndicator.textContent = "Pinned Cam View";
       } else if (currentCamViewMode === 'gallery-cam') {
         label.textContent = "Cam: Gallery";
-        if (pinnedCardId) {
-          togglePin(pinnedCardId); // Unpin if currently pinned
-        }
+        if (pinnedCardId) togglePin(pinnedCardId);
         viewIndicator.textContent = "Gallery View (Max 10)";
       } else {
         label.textContent = "Cam: Auto";
         viewIndicator.textContent = pinnedCardId ? "Speaker / Pinned View" : "Gallery View (Max 10)";
       }
-
       showToast(`Switched view to: ${label.textContent}`);
     }
 
     function toggleTheme() {
       isDarkMode = !isDarkMode;
-      if (isDarkMode) {
-        document.body.classList.remove('light-theme');
-        themeToggleBtn.textContent = '☀️ Light Mode';
-      } else {
-        document.body.classList.add('light-theme');
-        themeToggleBtn.textContent = '🌙 Dark Mode';
-      }
+      document.body.classList.toggle('light-theme', !isDarkMode);
+      themeToggleBtn.textContent = isDarkMode ? '☀️ Light Mode' : '🌙 Dark Mode';
       morePopover.classList.remove('active');
     }
 
-    /* SCREEN RECORDING WITH BOTH SYSTEM/TAB AUDIO AND MICROPHONE INPUT */
     async function toggleScreenRecording() {
       morePopover.classList.remove('active');
-
       if (!isRecording) {
         try {
-          const displayStream = await navigator.mediaDevices.getDisplayMedia({
-            video: true,
-            audio: true
-          });
-
+          const displayStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
           const tracks = [...displayStream.getVideoTracks()];
 
           audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -1199,42 +1011,25 @@
           }
 
           const mixedAudioTrack = dest.stream.getAudioTracks()[0];
-          if (mixedAudioTrack) {
-            tracks.push(mixedAudioTrack);
-          }
+          if (mixedAudioTrack) tracks.push(mixedAudioTrack);
 
           recordStream = new MediaStream(tracks);
           recordedChunks = [];
 
           let options = { mimeType: 'video/webm;codecs=vp9,opus' };
-          if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-            options = { mimeType: 'video/webm' };
-          }
+          if (!MediaRecorder.isTypeSupported(options.mimeType)) options = { mimeType: 'video/webm' };
 
           mediaRecorder = new MediaRecorder(recordStream, options);
-
-          mediaRecorder.ondataavailable = (event) => {
-            if (event.data && event.data.size > 0) {
-              recordedChunks.push(event.data);
-            }
-          };
-
+          mediaRecorder.ondataavailable = (e) => { if (e.data && e.data.size > 0) recordedChunks.push(e.data); };
           mediaRecorder.onstop = saveRecordingToFile;
 
-          displayStream.getVideoTracks()[0].onended = () => {
-            if (isRecording) {
-              stopRecordingProcess();
-            }
-          };
+          displayStream.getVideoTracks()[0].onended = () => { if (isRecording) stopRecordingProcess(); };
 
           mediaRecorder.start(1000);
           isRecording = true;
           recordScreenBtn.textContent = "⏹️ Stop Recording";
-          recordScreenBtn.classList.add('recording-active');
           showToast("Screen & Mic Recording Started!");
-
         } catch (err) {
-          console.error("Recording error:", err);
           showToast("Recording cancelled or permission denied.");
         }
       } else {
@@ -1243,40 +1038,24 @@
     }
 
     function stopRecordingProcess() {
-      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-        mediaRecorder.stop();
-      }
-      if (recordStream) {
-        recordStream.getTracks().forEach(track => track.stop());
-        recordStream = null;
-      }
-      if (audioContext) {
-        audioContext.close();
-        audioContext = null;
-      }
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+      if (recordStream) { recordStream.getTracks().forEach(track => track.stop()); recordStream = null; }
+      if (audioContext) { audioContext.close(); audioContext = null; }
       isRecording = false;
       recordScreenBtn.textContent = "📹 Record Screen";
-      recordScreenBtn.classList.remove('recording-active');
     }
 
     function saveRecordingToFile() {
       const blob = new Blob(recordedChunks, { type: 'video/webm' });
       const url = URL.createObjectURL(blob);
-      
       const downloadAnchor = document.createElement('a');
       downloadAnchor.style.display = 'none';
       downloadAnchor.href = url;
       downloadAnchor.download = `rumeet-recording-${Date.now()}.webm`;
-      
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
-
-      setTimeout(() => {
-        document.body.removeChild(downloadAnchor);
-        window.URL.revokeObjectURL(url);
-      }, 100);
-
-      showToast("Recording saved to files!");
+      setTimeout(() => { document.body.removeChild(downloadAnchor); window.URL.revokeObjectURL(url); }, 100);
+      showToast("Recording saved!");
     }
 
     function showToast(msg) {
@@ -1310,10 +1089,12 @@
     }
     window.addEventListener('beforeunload', stopAllTracks);
 
-    // Dynamic Remote Video Card Generation (10-Max Compatibility)
     function addPeerCard(peerId, name = 'Remote Peer') {
       let card = document.getElementById(`card-${peerId}`);
-      if (card) return card;
+      if (card) {
+        updateCardInfo(peerId, name);
+        return card;
+      }
 
       card = document.createElement('div');
       card.className = 'video-card';
@@ -1334,21 +1115,24 @@
       return card;
     }
 
+    function updateCardInfo(peerId, name) {
+      const nElem = document.getElementById(`nametag-${peerId}`);
+      const aElem = document.getElementById(`avatar-${peerId}`);
+      if (nElem) nElem.textContent = name;
+      if (aElem) aElem.textContent = name.charAt(0).toUpperCase();
+    }
+
     function removePeerCard(peerId) {
       const card = document.getElementById(`card-${peerId}`);
       if (card) {
-        if (pinnedCardId === `card-${peerId}`) {
-          togglePin(`card-${peerId}`);
-        }
+        if (pinnedCardId === `card-${peerId}`) togglePin(`card-${peerId}`);
         card.remove();
       }
     }
 
     function broadcastData(data) {
       Object.values(dataConns).forEach(conn => {
-        if (conn && conn.open) {
-          conn.send(data);
-        }
+        if (conn && conn.open) conn.send(data);
       });
     }
 
@@ -1364,7 +1148,6 @@
           resolve(assignedId);
         });
 
-        // Incoming Calls
         peer.on('call', (call) => {
           if (Object.keys(calls).length >= MAX_PARTICIPANTS - 1) {
             call.close();
@@ -1386,7 +1169,6 @@
           });
         });
 
-        // Incoming Data Connections
         peer.on('connection', (conn) => {
           dataConns[conn.peer] = conn;
           setupDataChannel(conn);
@@ -1400,10 +1182,7 @@
     }
 
     function connectToRemote(remoteId) {
-      if (Object.keys(calls).length >= MAX_PARTICIPANTS - 1) {
-        showToast("Room is full (Max 10 participants).");
-        return;
-      }
+      if (remoteId === peer.id || Object.keys(calls).length >= MAX_PARTICIPANTS - 1) return;
 
       if (!calls[remoteId] && localStream) {
         const call = peer.call(remoteId, localStream);
@@ -1442,18 +1221,12 @@
       conn.on('data', (data) => {
         if (data.type === 'meta') {
           peerNames[conn.peer] = data.name || 'Remote Peer';
-          const nElem = document.getElementById(`nametag-${conn.peer}`);
-          const aElem = document.getElementById(`avatar-${conn.peer}`);
-          if (nElem) nElem.textContent = peerNames[conn.peer];
-          if (aElem) aElem.textContent = peerNames[conn.peer].charAt(0).toUpperCase();
-
+          addPeerCard(conn.peer, peerNames[conn.peer]);
           updateRemoteVideoState(conn.peer, data.videoOff);
 
           if (Array.isArray(data.peerList)) {
             data.peerList.forEach(pId => {
-              if (pId !== peer.id && !dataConns[pId]) {
-                connectToRemote(pId);
-              }
+              if (pId !== peer.id && !dataConns[pId]) connectToRemote(pId);
             });
           }
         } else if (data.type === 'video-toggle') {
@@ -1477,7 +1250,6 @@
       });
     }
 
-    // Reaction Flow
     function triggerEmojiReaction(emoji) {
       displayFloatingEmoji('overlay-local', emoji);
       broadcastData({ type: 'reaction', emoji: emoji });
@@ -1492,18 +1264,15 @@
       span.textContent = emoji;
       span.style.left = `${Math.floor(Math.random() * 70) + 15}%`;
       overlay.appendChild(span);
-
       setTimeout(() => span.remove(), 2500);
     }
 
-    // Toggle Popover
     moreOptionsBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       morePopover.classList.toggle('active');
     });
     document.addEventListener('click', () => morePopover.classList.remove('active'));
 
-    // Live Whiteboard Logic
     const wbModal = document.getElementById('whiteboardModal');
     const wbCanvas = document.getElementById('wbCanvas');
     const wbColor = document.getElementById('wbColor');
@@ -1535,7 +1304,6 @@
       const currY = e.clientY - rect.top;
 
       drawStroke(prevX, prevY, currX, currY, wbColor.value);
-
       broadcastData({
         type: 'draw',
         x0: prevX / wbCanvas.width,
@@ -1563,11 +1331,7 @@
     }
 
     function drawRemoteLine(data) {
-      const x0 = data.x0 * wbCanvas.width;
-      const y0 = data.y0 * wbCanvas.height;
-      const x1 = data.x1 * wbCanvas.width;
-      const y1 = data.y1 * wbCanvas.height;
-      drawStroke(x0, y0, x1, y1, data.color);
+      drawStroke(data.x0 * wbCanvas.width, data.y0 * wbCanvas.height, data.x1 * wbCanvas.width, data.y1 * wbCanvas.height, data.color);
     }
 
     clearWbBtn.addEventListener('click', () => {
@@ -1575,11 +1339,8 @@
       broadcastData({ type: 'clear-wb' });
     });
 
-    function clearCanvasLocal() {
-      ctx.clearRect(0, 0, wbCanvas.width, wbCanvas.height);
-    }
+    function clearCanvasLocal() { ctx.clearRect(0, 0, wbCanvas.width, wbCanvas.height); }
 
-    // Calculator Logic
     const calcModal = document.getElementById('calculatorModal');
     const calcDisplay = document.getElementById('calcDisplay');
 
@@ -1589,17 +1350,10 @@
     }
 
     function calcInput(val) {
-      if (calcDisplay.value === '0' || calcDisplay.value === 'Error') {
-        calcDisplay.value = val;
-      } else {
-        calcDisplay.value += val;
-      }
+      calcDisplay.value = (calcDisplay.value === '0' || calcDisplay.value === 'Error') ? val : calcDisplay.value + val;
     }
 
-    function clearCalc() {
-      calcDisplay.value = '0';
-    }
-
+    function clearCalc() { calcDisplay.value = '0'; }
     function deleteCalc() {
       calcDisplay.value = calcDisplay.value.slice(0, -1);
       if (calcDisplay.value === '') calcDisplay.value = '0';
@@ -1613,7 +1367,6 @@
       }
     }
 
-    // Wikipedia Viewer Logic
     const wikiModal = document.getElementById('wikipediaModal');
     const wikiIframe = document.getElementById('wikiIframe');
     const wikiSearchInput = document.getElementById('wikiSearchInput');
@@ -1625,15 +1378,12 @@
 
     function searchWikipedia() {
       const query = wikiSearchInput.value.trim();
-      if (query) {
-        wikiIframe.src = `https://en.m.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(query)}`;
-      }
+      if (query) wikiIframe.src = `https://en.m.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(query)}`;
     }
 
     function handleChatSubmit() {
       const text = chatInput.value.trim();
       if (!text) return;
-
       appendMessage(userName, text, true);
       broadcastData({ type: 'chat', text: text, sender: userName });
       chatInput.value = '';
@@ -1642,10 +1392,7 @@
     function appendMessage(sender, text, isMe) {
       const msgDiv = document.createElement('div');
       msgDiv.className = `msg ${isMe ? 'me' : ''}`;
-      msgDiv.innerHTML = `
-        <span class="msg-sender">${sender}</span>
-        <div class="msg-bubble">${escapeHtml(text)}</div>
-      `;
+      msgDiv.innerHTML = `<span class="msg-sender">${sender}</span><div class="msg-bubble">${escapeHtml(text)}</div>`;
       chatMessages.appendChild(msgDiv);
       chatMessages.scrollTop = chatMessages.scrollHeight;
     }
@@ -1665,10 +1412,8 @@
           if (localStream) localStream.removeTrack(cameraTrack);
           cameraTrack = null;
         }
-        
         localVideo.classList.add('hidden-video');
         localAvatar.style.display = 'flex';
-
         Object.values(calls).forEach(call => {
           if (call.peerConnection) {
             const sender = call.peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
@@ -1679,13 +1424,8 @@
         try {
           const newVideoStream = await navigator.mediaDevices.getUserMedia({ video: true });
           cameraTrack = newVideoStream.getVideoTracks()[0];
-          
-          if (localStream) {
-            localStream.addTrack(cameraTrack);
-          } else {
-            localStream = newVideoStream;
-          }
-          
+          if (localStream) localStream.addTrack(cameraTrack);
+          else localStream = newVideoStream;
           localVideo.srcObject = localStream;
           localVideo.classList.remove('hidden-video');
           localAvatar.style.display = 'none';
@@ -1693,23 +1433,16 @@
           Object.values(calls).forEach(call => {
             if (call.peerConnection) {
               const sender = call.peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
-              if (sender) {
-                sender.replaceTrack(cameraTrack);
-              } else {
-                call.peerConnection.addTrack(cameraTrack, localStream);
-              }
+              if (sender) sender.replaceTrack(cameraTrack);
+              else call.peerConnection.addTrack(cameraTrack, localStream);
             }
           });
         } catch (err) {
-          console.error("Camera re-enable error:", err);
           showToast("Unable to start system camera.");
           isVideoOff = true;
-          document.getElementById('videoLabel').textContent = "Start Video";
-          stopVideoBtn.classList.add('active');
           return;
         }
       }
-
       broadcastData({ type: 'video-toggle', videoOff: isVideoOff });
       updateMasterAvButtonState();
     }
@@ -1735,7 +1468,6 @@
 
       document.getElementById('audioLabel').textContent = isAudioMuted ? "Unmute" : "Mute";
       muteAudioBtn.classList.toggle('active', isAudioMuted);
-
       updateMasterAvButtonState();
     }
 
@@ -1745,9 +1477,7 @@
       masterAvLabel.textContent = bothDisabled ? "AV On" : "AV Off";
     }
 
-    function toggleChat() {
-      chatSidebar.classList.toggle('hidden');
-    }
+    function toggleChat() { chatSidebar.classList.toggle('hidden'); }
 
     function togglePin(cardId) {
       const card = document.getElementById(cardId);
@@ -1771,19 +1501,14 @@
     async function togglePip(videoId) {
       const targetVideo = document.getElementById(videoId);
       try {
-        if (document.pictureInPictureElement) {
-          await document.exitPictureInPicture();
-        } else if (targetVideo && targetVideo.readyState >= 2) {
-          await targetVideo.requestPictureInPicture();
-        } else {
-          showToast("Video stream not ready for PIP.");
-        }
+        if (document.pictureInPictureElement) await document.exitPictureInPicture();
+        else if (targetVideo && targetVideo.readyState >= 2) await targetVideo.requestPictureInPicture();
+        else showToast("Video stream not ready.");
       } catch (err) {
         showToast("Picture-in-Picture not supported.");
       }
     }
 
-    /* SHARE SCREEN WITH AUDIO SUPPORT */
     async function toggleShareScreen() {
       if (!isSharingScreen) {
         try {
@@ -1795,7 +1520,6 @@
             if (call.peerConnection) {
               const sender = call.peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
               if (sender) sender.replaceTrack(screenTrack);
-
               if (screenAudioTrack) {
                 const audioSender = call.peerConnection.getSenders().find(s => s.track && s.track.kind === 'audio');
                 if (audioSender) audioSender.replaceTrack(screenAudioTrack);
@@ -1808,10 +1532,9 @@
           isSharingScreen = true;
           shareScreenBtn.classList.add('sharing');
           document.getElementById('shareLabel').textContent = "Stop Share";
-
           screenTrack.onended = () => stopScreenSharing();
         } catch (err) {
-          console.error("Screen share error:", err);
+          console.error(err);
         }
       } else {
         stopScreenSharing();
@@ -1830,7 +1553,6 @@
           if (call.peerConnection) {
             const sender = call.peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
             if (sender) sender.replaceTrack(cameraTrack);
-
             if (audioTrack) {
               const audioSender = call.peerConnection.getSenders().find(s => s.track && s.track.kind === 'audio');
               if (audioSender) audioSender.replaceTrack(audioTrack);
@@ -1846,7 +1568,6 @@
       document.getElementById('shareLabel').textContent = "Share Screen";
     }
 
-    // Modal UI Flow
     document.getElementById('btnChooseCreate').addEventListener('click', () => {
       initialChoiceCard.style.display = 'none';
       createCard.style.display = 'block';
@@ -1879,8 +1600,7 @@
       setUserName(name);
       await initPeerInstance();
 
-      generatedInviteMessage = `Hello, I would like you to join ${mName} in Rumeet. It is a ${mDesc}. Visit rudraanshm.github.io/rumeet and join the meeting. Timings (${startTime}) to (${endTime}). The code is ${meetingCode}. See you at the meeting.`;
-
+      generatedInviteMessage = `Hello, I would like you to join ${mName} in Rumeet. It is a ${mDesc}. Timings (${startTime}) to (${endTime}). Code: ${meetingCode}.`;
       document.getElementById('msgPreviewBox').textContent = generatedInviteMessage;
       createCard.style.display = 'none';
       inviteGenCard.style.display = 'block';
@@ -1893,7 +1613,7 @@
 
     document.getElementById('copyCodeOnlyBtn').addEventListener('click', () => {
       navigator.clipboard.writeText(meetingCode);
-      showToast("Meeting code copied to clipboard!");
+      showToast("Meeting code copied!");
     });
 
     document.getElementById('enterStageBtn').addEventListener('click', () => {
@@ -1914,13 +1634,8 @@
     });
 
     shareMeetingBtn.addEventListener('click', () => {
-      if (generatedInviteMessage) {
-        navigator.clipboard.writeText(generatedInviteMessage);
-        showToast("Invite message copied to clipboard!");
-      } else {
-        navigator.clipboard.writeText(meetingCode);
-        showToast("Meeting code copied to clipboard!");
-      }
+      navigator.clipboard.writeText(generatedInviteMessage || meetingCode);
+      showToast("Copied to clipboard!");
     });
 
     muteAudioBtn.addEventListener('click', () => updateAudioState(!isAudioMuted));
@@ -1933,11 +1648,7 @@
 
     shareScreenBtn.addEventListener('click', toggleShareScreen);
     chatToggleBtn.addEventListener('click', toggleChat);
-
-    endCallBtn.addEventListener('click', () => {
-      stopAllTracks();
-      location.reload();
-    });
+    endCallBtn.addEventListener('click', () => { stopAllTracks(); location.reload(); });
 
     window.addEventListener('load', async () => {
       await initMedia();
