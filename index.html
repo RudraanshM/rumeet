@@ -1155,18 +1155,7 @@
           }
           calls[call.peer] = call;
           call.answer(localStream);
-
-          call.on('stream', (remoteStream) => {
-            const pName = peerNames[call.peer] || 'Remote Peer';
-            addPeerCard(call.peer, pName);
-            const vElem = document.getElementById(`video-${call.peer}`);
-            if (vElem) vElem.srcObject = remoteStream;
-          });
-
-          call.on('close', () => {
-            removePeerCard(call.peer);
-            delete calls[call.peer];
-          });
+          handleCallStream(call);
         });
 
         peer.on('connection', (conn) => {
@@ -1182,30 +1171,48 @@
     }
 
     function connectToRemote(remoteId) {
-      if (remoteId === peer.id || Object.keys(calls).length >= MAX_PARTICIPANTS - 1) return;
-
-      if (!calls[remoteId] && localStream) {
-        const call = peer.call(remoteId, localStream);
-        calls[remoteId] = call;
-
-        call.on('stream', (remoteStream) => {
-          const pName = peerNames[remoteId] || 'Remote Peer';
-          addPeerCard(remoteId, pName);
-          const vElem = document.getElementById(`video-${remoteId}`);
-          if (vElem) vElem.srcObject = remoteStream;
-        });
-
-        call.on('close', () => {
-          removePeerCard(remoteId);
-          delete calls[remoteId];
-        });
-      }
+      if (remoteId === peer.id || Object.keys(dataConns).length >= MAX_PARTICIPANTS - 1) return;
 
       if (!dataConns[remoteId]) {
         const conn = peer.connect(remoteId);
         dataConns[remoteId] = conn;
         setupDataChannel(conn);
       }
+
+      // DETERMINISTIC TIE-BREAKING: Prevents dual-calling glare
+      if (!calls[remoteId] && localStream && peer.id < remoteId) {
+        initiateCall(remoteId);
+      }
+    }
+
+    function initiateCall(remoteId) {
+      const call = peer.call(remoteId, localStream);
+      calls[remoteId] = call;
+      handleCallStream(call);
+    }
+
+    function handleCallStream(call) {
+      call.on('stream', (remoteStream) => {
+        const pName = peerNames[call.peer] || 'Remote Peer';
+        addPeerCard(call.peer, pName);
+        
+        const vElem = document.getElementById(`video-${call.peer}`);
+        if (vElem) {
+          if (vElem.srcObject !== remoteStream) {
+            vElem.srcObject = remoteStream;
+          }
+          vElem.play().catch(err => console.warn("Autoplay suppressed:", err));
+        }
+      });
+
+      call.on('close', () => {
+        removePeerCard(call.peer);
+        delete calls[call.peer];
+      });
+
+      call.on('error', (err) => {
+        console.error(`Call error with ${call.peer}:`, err);
+      });
     }
 
     function setupDataChannel(conn) {
