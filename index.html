@@ -1508,6 +1508,21 @@
       handleCallStream(call);
     }
 
+    const negotiationState = {}; // peerId -> { makingOffer, ignoreOffer, polite }
+
+    function getNegotiationState(remotePeerId) {
+      if (!negotiationState[remotePeerId]) {
+        negotiationState[remotePeerId] = {
+          makingOffer: false,
+          ignoreOffer: false,
+          // Deterministic, same on both ends: the peer with the
+          // lexicographically larger id is "polite" (yields on collision).
+          polite: peer.id > remotePeerId
+        };
+      }
+      return negotiationState[remotePeerId];
+    }
+
     function handleCallStream(call) {
       if (call.peerConnection && !call.peerConnection.onnegotiationneeded) {
         call.peerConnection.onnegotiationneeded = () => handleRenegotiation(call);
@@ -1529,6 +1544,7 @@
       call.on('close', () => {
         removePeerCard(call.peer);
         delete calls[call.peer];
+        delete negotiationState[call.peer];
       });
 
       call.on('error', (err) => {
@@ -1540,15 +1556,19 @@
       const pc = call.peerConnection;
       const conn = dataConns[call.peer];
       if (!pc || !conn || !conn.open) return;
-      if (pc.signalingState !== 'stable') return; // avoid glare; will settle on next negotiationneeded
+      const state = getNegotiationState(call.peer);
       try {
+        state.makingOffer = true;
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
         conn.send({ type: 'renegotiate-offer', sdp: pc.localDescription });
       } catch (err) {
         console.error('Renegotiation offer failed:', err);
+      } finally {
+        state.makingOffer = false;
       }
     }
+
 
     function setupDataChannel(conn) {
       conn.on('open', () => {
@@ -1609,12 +1629,23 @@
           const call = calls[conn.peer];
           if (call && call.peerConnection) {
             const pc = call.peerConnection;
-            Promise.resolve()
-              .then(() => pc.setRemoteDescription(new RTCSessionDescription(data.sdp)))
-              .then(() => pc.createAnswer())
-              .then(answer => pc.setLocalDescription(answer))
-              .then(() => conn.send({ type: 'renegotiate-answer', sdp: pc.localDescription }))
-              .catch(err => console.error('Renegotiation answer failed:', err));
+            const state = getNegotiationState(conn.peer);
+            const offerCollision = state.makingOffer || pc.signalingState !== 'stable';
+            state.ignoreOffer = !state.polite && offerCollision;
+            if (state.ignoreOffer) {
+              // Impolite peer: ignore the incoming offer during a collision,
+              // our own outgoing offer will win instead.
+            } else {
+              (offerCollision
+                ? pc.setLocalDescription({ type: 'rollback' })
+                : Promise.resolve()
+              )
+                .then(() => pc.setRemoteDescription(new RTCSessionDescription(data.sdp)))
+                .then(() => pc.createAnswer())
+                .then(answer => pc.setLocalDescription(answer))
+                .then(() => conn.send({ type: 'renegotiate-answer', sdp: pc.localDescription }))
+                .catch(err => console.error('Renegotiation answer failed:', err));
+            }
           }
         } else if (data.type === 'renegotiate-answer') {
           const call = calls[conn.peer];
