@@ -1078,6 +1078,8 @@
     let isAudioMuted = false;
     let isVideoOff = false;
     let isSharingScreen = false;
+    let micAndScreenAudioContext = null;
+    let mixedAudioTrack = null;
     let pinnedCardId = null;
     let screenStream = null;
     let isDarkMode = true;
@@ -1088,6 +1090,9 @@
     let isRecording = false;
     let recordStream = null;
     let audioContext = null;
+    let recordDestination = null; // Web Audio mix destination, kept around so we can add peers mid-recording
+    let recordingMicStream = null; // independent mic capture, unaffected by call mute
+    let recordingRemoteSources = {}; // peerId -> AudioNode, for adding/cleaning up per peer
 
     const localVideo = document.getElementById('localVideo');
     const localAvatar = document.getElementById('avatar-local');
@@ -1167,19 +1172,32 @@
           const tracks = [...displayStream.getVideoTracks()];
 
           audioContext = new (window.AudioContext || window.webkitAudioContext)();
-          const dest = audioContext.createMediaStreamDestination();
+          recordDestination = audioContext.createMediaStreamDestination();
 
           if (displayStream.getAudioTracks().length > 0) {
             const systemSource = audioContext.createMediaStreamSource(new MediaStream([displayStream.getAudioTracks()[0]]));
-            systemSource.connect(dest);
+            systemSource.connect(recordDestination);
           }
 
-          if (localStream && localStream.getAudioTracks().length > 0) {
-            const micSource = audioContext.createMediaStreamSource(new MediaStream([localStream.getAudioTracks()[0]]));
-            micSource.connect(dest);
+          // Independent mic capture — deliberately NOT the same track used
+          // for the call, so muting yourself for the call doesn't silence
+          // you in the recording.
+          try {
+            recordingMicStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            audioContext.createMediaStreamSource(recordingMicStream).connect(recordDestination);
+          } catch (micErr) {
+            console.warn('Could not get independent mic capture for recording:', micErr);
           }
 
-          const mixedAudioTrack = dest.stream.getAudioTracks()[0];
+          // Mix in every currently-connected peer's audio too, so the
+          // recording captures both sides of the conversation.
+          recordingRemoteSources = {};
+          Object.entries(calls).forEach(([peerId]) => {
+            const vElem = document.getElementById(`video-${peerId}`);
+            if (vElem && vElem.srcObject) addRemoteAudioToRecording(peerId, vElem.srcObject);
+          });
+
+          const mixedAudioTrack = recordDestination.stream.getAudioTracks()[0];
           if (mixedAudioTrack) tracks.push(mixedAudioTrack);
 
           recordStream = new MediaStream(tracks);
@@ -1197,7 +1215,7 @@
           mediaRecorder.start(1000);
           isRecording = true;
           recordScreenBtn.textContent = "⏹️ Stop Recording";
-          showToast("Screen & Mic Recording Started!");
+          showToast("Recording started — capturing your mic and everyone's audio.");
         } catch (err) {
           showToast("Recording cancelled or permission denied.");
         }
@@ -1209,7 +1227,10 @@
     function stopRecordingProcess() {
       if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
       if (recordStream) { recordStream.getTracks().forEach(track => track.stop()); recordStream = null; }
+      if (recordingMicStream) { recordingMicStream.getTracks().forEach(track => track.stop()); recordingMicStream = null; }
       if (audioContext) { audioContext.close(); audioContext = null; }
+      recordDestination = null;
+      recordingRemoteSources = {};
       isRecording = false;
       recordScreenBtn.textContent = "📹 Record Screen";
     }
@@ -1539,12 +1560,14 @@
           }
           vElem.play().catch(err => console.warn("Autoplay suppressed:", err));
         }
+        addRemoteAudioToRecording(call.peer, remoteStream);
       });
 
       call.on('close', () => {
         removePeerCard(call.peer);
         delete calls[call.peer];
         delete negotiationState[call.peer];
+        delete recordingRemoteSources[call.peer];
       });
 
       call.on('error', (err) => {
@@ -1927,20 +1950,49 @@
       }
     }
 
+    function addRemoteAudioToRecording(peerId, remoteStream) {
+      if (!isRecording || !audioContext || !recordDestination) return;
+      if (recordingRemoteSources[peerId]) return; // already mixed in
+      const audioTracks = remoteStream.getAudioTracks();
+      if (!audioTracks.length) return;
+      try {
+        const src = audioContext.createMediaStreamSource(new MediaStream(audioTracks));
+        src.connect(recordDestination);
+        recordingRemoteSources[peerId] = src;
+      } catch (err) {
+        console.error('Failed to add remote audio to recording:', err);
+      }
+    }
+
     async function toggleShareScreen() {
       if (!isSharingScreen) {
         try {
           screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
           const screenTrack = screenStream.getVideoTracks()[0];
           const screenAudioTrack = screenStream.getAudioTracks()[0];
+          const micTrack = localStream ? localStream.getAudioTracks()[0] : null;
+
+          // Mix your mic with the shared system/tab audio instead of replacing
+          // it outright, so you can still talk while sharing audio.
+          let audioTrackToSend = micTrack || null;
+          if (screenAudioTrack && micTrack) {
+            micAndScreenAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const dest = micAndScreenAudioContext.createMediaStreamDestination();
+            micAndScreenAudioContext.createMediaStreamSource(new MediaStream([micTrack])).connect(dest);
+            micAndScreenAudioContext.createMediaStreamSource(new MediaStream([screenAudioTrack])).connect(dest);
+            mixedAudioTrack = dest.stream.getAudioTracks()[0];
+            audioTrackToSend = mixedAudioTrack;
+          } else if (screenAudioTrack) {
+            audioTrackToSend = screenAudioTrack;
+          }
 
           Object.values(calls).forEach(call => {
             if (call.peerConnection) {
               const sender = call.peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
               if (sender) sender.replaceTrack(screenTrack);
-              if (screenAudioTrack) {
+              if (audioTrackToSend) {
                 const audioSender = call.peerConnection.getSenders().find(s => s.track && s.track.kind === 'audio');
-                if (audioSender) audioSender.replaceTrack(screenAudioTrack);
+                if (audioSender) audioSender.replaceTrack(audioTrackToSend);
               }
             }
           });
@@ -1964,6 +2016,12 @@
         screenStream.getTracks().forEach(t => t.stop());
         screenStream = null;
       }
+
+      if (micAndScreenAudioContext) {
+        micAndScreenAudioContext.close().catch(() => {});
+        micAndScreenAudioContext = null;
+      }
+      mixedAudioTrack = null;
 
       if (cameraTrack) {
         const audioTrack = localStream ? localStream.getAudioTracks()[0] : null;
