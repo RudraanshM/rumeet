@@ -1164,6 +1164,38 @@
       morePopover.classList.remove('active');
     }
 
+    let recordingWatchdogInterval = null;
+
+    function startRecordingWatchdog() {
+      stopRecordingWatchdog();
+      recordingWatchdogInterval = setInterval(() => {
+        if (!isRecording) { stopRecordingWatchdog(); return; }
+
+        // Some browsers suspend an AudioContext after the tab sits
+        // unfocused for a while, which silently kills the mixed audio
+        // even though the video keeps recording. Resume it if needed.
+        if (audioContext && audioContext.state === 'suspended') {
+          audioContext.resume().catch(() => {});
+        }
+
+        // Catch anyone whose audio didn't get attached yet (e.g. they
+        // joined mid-recording and the stream event was missed).
+        Object.entries(calls).forEach(([peerId]) => {
+          const vElem = document.getElementById(`video-${peerId}`);
+          if (vElem && vElem.srcObject && !recordingRemoteSources[peerId]) {
+            addRemoteAudioToRecording(peerId, vElem.srcObject);
+          }
+        });
+      }, 3000);
+    }
+
+    function stopRecordingWatchdog() {
+      if (recordingWatchdogInterval) {
+        clearInterval(recordingWatchdogInterval);
+        recordingWatchdogInterval = null;
+      }
+    }
+
     async function toggleScreenRecording() {
       morePopover.classList.remove('active');
       if (!isRecording) {
@@ -1179,14 +1211,19 @@
             systemSource.connect(recordDestination);
           }
 
-          // Independent mic capture — deliberately NOT the same track used
-          // for the call, so muting yourself for the call doesn't silence
-          // you in the recording.
-          try {
-            recordingMicStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          // Independent mic capture — clone the existing mic track instead of
+          // requesting the device a second time. Two separate live captures
+          // of the same physical mic is often what silently drops out after
+          // a while (device contention). A clone shares the same live audio
+          // source but has its own independent `enabled` flag, so it stays
+          // unaffected by the call's Mute button without needing a second
+          // device grab.
+          const liveMicTrack = localStream ? localStream.getAudioTracks()[0] : null;
+          if (liveMicTrack) {
+            const micClone = liveMicTrack.clone();
+            micClone.enabled = true;
+            recordingMicStream = new MediaStream([micClone]);
             audioContext.createMediaStreamSource(recordingMicStream).connect(recordDestination);
-          } catch (micErr) {
-            console.warn('Could not get independent mic capture for recording:', micErr);
           }
 
           // Mix in every currently-connected peer's audio too, so the
@@ -1216,6 +1253,7 @@
           isRecording = true;
           recordScreenBtn.textContent = "⏹️ Stop Recording";
           showToast("Recording started — capturing your mic and everyone's audio.");
+          startRecordingWatchdog();
         } catch (err) {
           showToast("Recording cancelled or permission denied.");
         }
@@ -1225,6 +1263,7 @@
     }
 
     function stopRecordingProcess() {
+      stopRecordingWatchdog();
       if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
       if (recordStream) { recordStream.getTracks().forEach(track => track.stop()); recordStream = null; }
       if (recordingMicStream) { recordingMicStream.getTracks().forEach(track => track.stop()); recordingMicStream = null; }
