@@ -212,6 +212,14 @@
       z-index: 2;
     }
 
+    .host-badge {
+      font-size: 0.85rem;
+    }
+
+    .card-btn-remove:hover {
+      background: #dc2626;
+    }
+
     .card-actions {
       position: absolute;
       top: 10px;
@@ -239,64 +247,6 @@
 
     .card-btn:hover {
       background: #2563eb;
-    }
-
-    .card-btn.danger-btn:hover {
-      background: #dc2626;
-    }
-
-    .host-crown {
-      font-size: 0.85rem;
-      line-height: 1;
-    }
-
-    .host-only {
-      display: none;
-    }
-
-    body.is-host-mode .host-only {
-      display: flex;
-    }
-
-    body.is-host-mode .host-only.popover-item {
-      display: flex;
-    }
-
-    .host-section-label {
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-sub);
-      padding: 6px 10px 2px;
-    }
-
-    .host-divider {
-      border: none;
-      border-top: 1px solid var(--border-color);
-      margin: 4px 0;
-    }
-
-    .z-btn.locked {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .kicked-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.92);
-      color: #fff;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 1rem;
-      z-index: 500;
-      text-align: center;
-    }
-
-    .kicked-overlay .btn-zoom-blue {
-      width: 220px;
     }
 
     .chat-sidebar {
@@ -814,7 +764,7 @@
           <video id="localVideo" class="local-mirror" autoplay playsinline muted></video>
           <div class="reaction-overlay" id="overlay-local"></div>
           <div class="avatar-circle" id="avatar-local" style="display: none;">U</div>
-          <div class="nametag"><span id="localNameLabel">User (You)</span><span class="host-crown host-only" id="localHostCrown">👑</span></div>
+          <div class="nametag"><span id="localNameLabel">User (You)</span><span id="localHostBadge" class="host-badge" style="display:none;">👑</span></div>
           <div class="card-actions">
             <button class="card-btn" onclick="togglePin('card-local')">📌 Pin</button>
             <button class="card-btn" onclick="togglePip('localVideo')">🖼️ PiP</button>
@@ -892,17 +842,27 @@
           <button class="popover-item" onclick="toggleWhiteboard()">🎨 Live Whiteboard</button>
           <button class="popover-item" onclick="toggleCalculator()">🧮 Calculator</button>
           <button class="popover-item" onclick="toggleWikipedia()">🌐 Wikipedia Reader</button>
-
-          <hr class="host-divider host-only">
-          <div class="host-section-label host-only">👑 Host Controls</div>
-          <button class="popover-item host-only" onclick="hostMuteAll()">🔇 Mute All</button>
-          <button class="popover-item host-only" id="hostBanMicBtn" onclick="hostToggleMicBan()">🚫🎤 Ban Mic for All</button>
-          <button class="popover-item host-only" id="hostBanCamBtn" onclick="hostToggleCamBan()">🚫📷 Ban Camera for All</button>
         </div>
       </div>
     </div>
 
     <div class="controls-group">
+      <button class="z-btn" id="muteAllBtn" style="display:none;" onclick="muteAllParticipants()" title="Mute everyone's mic">
+        <svg viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12h-2zM4.27 3L3 4.27l6.01 6.01V12c0 1.66 1.34 3 3 3 .23 0 .45-.03.66-.08l1.66 1.66c-.71.33-1.5.52-2.32.52-2.76 0-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c.91-.13 1.76-.45 2.53-.9L19.73 21 21 19.73 4.27 3z"/></svg>
+        <span>Mute All</span>
+      </button>
+      <button class="z-btn" id="stopAllVideoBtn" style="display:none;" onclick="stopAllVideo()" title="Turn off everyone's camera">
+        <svg viewBox="0 0 24 24"><path d="M21 6.5l-4 4V7c0-.55-.45-1-1-1H9.83l8.51 8.51c.4-.16.66-.55.66-1.01v-2.5l4 4v-11zM3.27 2L2 3.27 4.73 6H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.21 0 .39-.08.54-.18L19.73 21 21 19.73 3.27 2z"/></svg>
+        <span>Stop All Video</span>
+      </button>
+      <button class="z-btn" id="stopAllShareBtn" style="display:none;" onclick="stopAllShares()" title="Stop everyone's screen share">
+        <svg viewBox="0 0 24 24"><path d="M20 18c1.1 0 1.99-.9 1.99-2L22 5c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 5h16v11H4V5z"/></svg>
+        <span>Stop All Share</span>
+      </button>
+      <button class="z-btn" id="endMeetingBtn" style="display:none; color:#dc2626;" onclick="endMeetingForAll()">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/></svg>
+        <span>End for All</span>
+      </button>
       <button class="btn-end" id="endCallBtn">End</button>
     </div>
   </div>
@@ -974,6 +934,9 @@
     let meetingCode = '';
     let userName = 'User';
     let generatedInviteMessage = '';
+    let isHost = false;
+    let hostId = null;
+    const peerHosts = {}; // peerId -> boolean, tracks who else claims to be host
 
     let isAudioMuted = false;
     let isVideoOff = false;
@@ -988,12 +951,6 @@
     let isRecording = false;
     let recordStream = null;
     let audioContext = null;
-
-    // --- Host system ---
-    let isHost = false;        // true for the peer who originated (created) the call
-    let hostPeerId = null;     // peer id of the host (== meeting code for everyone)
-    let micBanned = false;     // host-enforced: nobody (except host) may unmute mic
-    let camBanned = false;     // host-enforced: nobody (except host) may turn on camera
 
     const localVideo = document.getElementById('localVideo');
     const localAvatar = document.getElementById('avatar-local');
@@ -1021,6 +978,11 @@
     const videoGrid = document.getElementById('videoGrid');
     const viewIndicator = document.getElementById('viewIndicator');
     const endCallBtn = document.getElementById('endCallBtn');
+    const localHostBadge = document.getElementById('localHostBadge');
+    const endMeetingBtn = document.getElementById('endMeetingBtn');
+    const muteAllBtn = document.getElementById('muteAllBtn');
+    const stopAllVideoBtn = document.getElementById('stopAllVideoBtn');
+    const stopAllShareBtn = document.getElementById('stopAllShareBtn');
     const toast = document.getElementById('toast');
 
     function cycleCamView() {
@@ -1140,34 +1102,12 @@
       localAvatar.textContent = userName.charAt(0).toUpperCase();
     }
 
-    function applyHostUIState() {
-      document.body.classList.toggle('is-host-mode', isHost);
-      const hostBanMicBtn = document.getElementById('hostBanMicBtn');
-      const hostBanCamBtn = document.getElementById('hostBanCamBtn');
-      if (hostBanMicBtn) hostBanMicBtn.textContent = micBanned ? '✅🎤 Unban Mic for All' : '🚫🎤 Ban Mic for All';
-      if (hostBanCamBtn) hostBanCamBtn.textContent = camBanned ? '✅📷 Unban Camera for All' : '🚫📷 Ban Camera for All';
-      // Re-render remote cards so host-only per-participant buttons appear/disappear
-      Object.keys(peerNames).forEach(pId => addPeerCard(pId, peerNames[pId]));
-      applyLockUI();
-    }
-
-    function applyLockUI() {
-      const canUnmute = isHost || !micBanned;
-      const canTurnOnCam = isHost || !camBanned;
-      muteAudioBtn.classList.toggle('locked', !canUnmute && isAudioMuted);
-      stopVideoBtn.classList.toggle('locked', !canTurnOnCam && isVideoOff);
-    }
-
-    function sendToPeer(peerId, data) {
-      const conn = dataConns[peerId];
-      if (conn && conn.open) conn.send(data);
-    }
-
     async function initMedia() {
       if (localStream) return;
       try {
         localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localVideo.srcObject = localStream;
+        localVideo.play().catch(err => console.warn("Local video autoplay suppressed:", err));
         cameraTrack = localStream.getVideoTracks()[0];
       } catch (err) {
         alert("Camera and Microphone permissions are required.");
@@ -1193,20 +1133,20 @@
       card.className = 'video-card';
       card.id = `card-${peerId}`;
 
-      const crownSpan = peerId === hostPeerId ? `<span class="host-crown">👑</span>` : '';
-      const hostBtns = isHost ? `
-          <button class="card-btn host-card-action" onclick="hostMutePeer('${peerId}')" title="Mute this participant's mic">🎤🔇</button>
-          <button class="card-btn host-card-action" onclick="hostTurnOffPeerCam('${peerId}')" title="Turn off this participant's camera">📷🚫</button>
-          <button class="card-btn danger-btn host-card-action" onclick="hostKickPeer('${peerId}')" title="Remove from meeting">⛔</button>` : '';
-
       card.innerHTML = `
         <video id="video-${peerId}" autoplay playsinline></video>
         <div class="reaction-overlay" id="overlay-${peerId}"></div>
         <div class="avatar-circle" id="avatar-${peerId}" style="display: none;">${name.charAt(0).toUpperCase()}</div>
-        <div class="nametag"><span id="nametag-${peerId}">${name}</span>${crownSpan}</div>
+        <div class="nametag"><span id="nametag-${peerId}">${name}</span><span id="hostbadge-${peerId}" class="host-badge" style="display:none;">👑</span></div>
         <div class="card-actions">
           <button class="card-btn" onclick="togglePin('card-${peerId}')">📌 Pin</button>
-          <button class="card-btn" onclick="togglePip('video-${peerId}')">🖼️ PiP</button>${hostBtns}
+          <button class="card-btn" onclick="togglePip('video-${peerId}')">🖼️ PiP</button>
+          ${isHost ? `
+            <button class="card-btn" onclick="muteParticipant('${peerId}')" title="Mute their mic">🔇 Mute</button>
+            <button class="card-btn" onclick="disableParticipantVideo('${peerId}')" title="Turn off their camera">📷 Cam Off</button>
+            <button class="card-btn" onclick="stopParticipantShare('${peerId}')" title="Stop their screen share">🖥️ Stop Share</button>
+            <button class="card-btn card-btn-remove" onclick="removeParticipant('${peerId}')">⛔ Remove</button>
+          ` : ''}
         </div>
       `;
 
@@ -1219,35 +1159,79 @@
       const aElem = document.getElementById(`avatar-${peerId}`);
       if (nElem) nElem.textContent = name;
       if (aElem) aElem.textContent = name.charAt(0).toUpperCase();
+    }
 
-      // Refresh host crown badge next to the name
-      const nametag = nElem ? nElem.parentElement : null;
-      if (nametag) {
-        let crown = nametag.querySelector('.host-crown');
-        if (peerId === hostPeerId) {
-          if (!crown) {
-            crown = document.createElement('span');
-            crown.className = 'host-crown';
-            crown.textContent = '👑';
-            nametag.appendChild(crown);
-          }
-        } else if (crown) {
-          crown.remove();
-        }
-      }
+    function setPeerHostBadge(peerId, isPeerHost) {
+      peerHosts[peerId] = !!isPeerHost;
+      if (isPeerHost) hostId = peerId;
+      const badge = document.getElementById(`hostbadge-${peerId}`);
+      if (badge) badge.style.display = isPeerHost ? 'inline' : 'none';
+    }
 
-      // Refresh host-only per-participant action buttons
-      const card = document.getElementById(`card-${peerId}`);
-      const actions = card ? card.querySelector('.card-actions') : null;
-      if (actions) {
-        actions.querySelectorAll('.host-card-action').forEach(btn => btn.remove());
-        if (isHost) {
-          actions.insertAdjacentHTML('beforeend', `
-            <button class="card-btn host-card-action" onclick="hostMutePeer('${peerId}')" title="Mute this participant's mic">🎤🔇</button>
-            <button class="card-btn host-card-action" onclick="hostTurnOffPeerCam('${peerId}')" title="Turn off this participant's camera">📷🚫</button>
-            <button class="card-btn danger-btn host-card-action" onclick="hostKickPeer('${peerId}')" title="Remove from meeting">⛔</button>`);
-        }
+    function muteParticipant(peerId) {
+      if (!isHost) return;
+      const conn = dataConns[peerId];
+      if (conn && conn.open) conn.send({ type: 'force-mute' });
+    }
+
+    function disableParticipantVideo(peerId) {
+      if (!isHost) return;
+      const conn = dataConns[peerId];
+      if (conn && conn.open) conn.send({ type: 'force-video-off' });
+    }
+
+    function stopParticipantShare(peerId) {
+      if (!isHost) return;
+      const conn = dataConns[peerId];
+      if (conn && conn.open) conn.send({ type: 'force-stop-share' });
+    }
+
+    function muteAllParticipants() {
+      if (!isHost) return;
+      broadcastData({ type: 'force-mute' });
+      showToast("Muted everyone's mic.");
+    }
+
+    function stopAllVideo() {
+      if (!isHost) return;
+      broadcastData({ type: 'force-video-off' });
+      showToast("Turned off everyone's camera.");
+    }
+
+    function stopAllShares() {
+      if (!isHost) return;
+      broadcastData({ type: 'force-stop-share' });
+      showToast("Stopped everyone's screen share.");
+    }
+
+    function setHostUIVisible(visible) {
+      localHostBadge.style.display = visible ? 'inline' : 'none';
+      endMeetingBtn.style.display = visible ? 'inline-flex' : 'none';
+      muteAllBtn.style.display = visible ? 'inline-flex' : 'none';
+      stopAllVideoBtn.style.display = visible ? 'inline-flex' : 'none';
+      stopAllShareBtn.style.display = visible ? 'inline-flex' : 'none';
+    }
+
+    function removeParticipant(peerId) {
+      if (!isHost) return;
+      const conn = dataConns[peerId];
+      if (conn && conn.open) {
+        conn.send({ type: 'kick' });
       }
+      // Give the kick message a moment to flush before tearing down the connection
+      setTimeout(() => {
+        if (calls[peerId]) { calls[peerId].close(); delete calls[peerId]; }
+        if (dataConns[peerId]) { dataConns[peerId].close(); delete dataConns[peerId]; }
+        removePeerCard(peerId);
+        delete peerNames[peerId];
+      }, 300);
+    }
+
+    function endMeetingForAll() {
+      if (!isHost) return;
+      if (!confirm("End this meeting for everyone?")) return;
+      broadcastData({ type: 'end-meeting' });
+      setTimeout(() => { stopAllTracks(); location.reload(); }, 300);
     }
 
     function removePeerCard(peerId) {
@@ -1262,75 +1246,6 @@
       Object.values(dataConns).forEach(conn => {
         if (conn && conn.open) conn.send(data);
       });
-    }
-
-    // ---------- Host: global controls ----------
-
-    function hostMuteAll() {
-      if (!isHost) return;
-      broadcastData({ type: 'host-mute-all' });
-      showToast("Muted microphones for all participants.");
-      morePopover.classList.remove('active');
-    }
-
-    function hostToggleMicBan() {
-      if (!isHost) return;
-      micBanned = !micBanned;
-      broadcastData({ type: 'host-mic-ban', banned: micBanned });
-      applyHostUIState();
-      showToast(micBanned ? "Microphone banned for all participants." : "Microphone ban lifted for all participants.");
-      morePopover.classList.remove('active');
-    }
-
-    function hostToggleCamBan() {
-      if (!isHost) return;
-      camBanned = !camBanned;
-      broadcastData({ type: 'host-cam-ban', banned: camBanned });
-      applyHostUIState();
-      showToast(camBanned ? "Camera banned for all participants." : "Camera ban lifted for all participants.");
-      morePopover.classList.remove('active');
-    }
-
-    // ---------- Host: per-participant controls ----------
-
-    function hostMutePeer(peerId) {
-      if (!isHost) return;
-      sendToPeer(peerId, { type: 'host-force-mute' });
-      showToast(`Muted ${peerNames[peerId] || 'participant'}.`);
-    }
-
-    function hostTurnOffPeerCam(peerId) {
-      if (!isHost) return;
-      sendToPeer(peerId, { type: 'host-force-video-off' });
-      showToast(`Turned off camera for ${peerNames[peerId] || 'participant'}.`);
-    }
-
-    function hostKickPeer(peerId) {
-      if (!isHost) return;
-      if (!confirm(`Remove ${peerNames[peerId] || 'this participant'} from the meeting?`)) return;
-      sendToPeer(peerId, { type: 'host-kick' });
-      showToast(`Removed ${peerNames[peerId] || 'participant'} from the meeting.`);
-      // Give the kick message a moment to flush before we tear the connection down.
-      setTimeout(() => {
-        if (calls[peerId]) { calls[peerId].close(); delete calls[peerId]; }
-        if (dataConns[peerId]) { dataConns[peerId].close(); delete dataConns[peerId]; }
-        removePeerCard(peerId);
-        delete peerNames[peerId];
-      }, 300);
-    }
-
-    // ---------- Being on the receiving end of host actions ----------
-
-    function showKickedOverlay() {
-      stopAllTracks();
-      const overlay = document.createElement('div');
-      overlay.className = 'kicked-overlay';
-      overlay.innerHTML = `
-        <div class="rainbow-glow-title" style="font-size:1.8rem;">Removed from Meeting</div>
-        <p style="color:#ccc;">The host has removed you from this meeting.</p>
-        <button class="btn-zoom-blue" onclick="location.reload()">Return to Home</button>
-      `;
-      document.body.appendChild(overlay);
     }
 
     function initPeerInstance(customId = null, displayCode = null) {
@@ -1351,20 +1266,67 @@
             return;
           }
           calls[call.peer] = call;
-          call.answer(localStream);
-          handleCallStream(call);
+          answerCallWhenReady(call);
         });
 
         peer.on('connection', (conn) => {
           dataConns[conn.peer] = conn;
           setupDataChannel(conn);
+          // Both sides must evaluate the tie-break, not just whoever
+          // dialed in — otherwise if the host's id happens to sort
+          // higher than the joiner's, neither side ever places the
+          // actual media call.
+          connectToRemote(conn.peer);
         });
 
         peer.on('error', (err) => {
           console.error("Peer Error:", err);
-          showToast("Connection Alert: " + err.type);
+          if (err.type === 'peer-unavailable') {
+            showToast("No one is hosting with that code right now. Ask your friend to resend their current code.");
+          } else {
+            showToast("Connection Alert: " + err.type);
+          }
+        });
+
+        peer.on('disconnected', () => {
+          // Socket to the signaling server dropped (backgrounded tab, brief
+          // network blip, etc). Reconnect using the SAME id instead of
+          // silently ending up with a new random one on next Peer() call.
+          console.warn("Lost connection to signaling server, attempting to reconnect...");
+          showToast("Reconnecting...");
+          if (!peer.destroyed) {
+            peer.reconnect();
+          }
+        });
+
+        peer.on('close', () => {
+          showToast("Meeting connection closed.");
         });
       });
+    }
+
+    function answerCallWhenReady(call) {
+      if (localStream) {
+        call.answer(localStream);
+        handleCallStream(call);
+        return;
+      }
+      // Camera/mic permission hasn't resolved yet — wait for it instead of
+      // answering with an empty stream (which would leave the caller's
+      // tile permanently black with no way to renegotiate later).
+      let attempts = 0;
+      const waitForStream = setInterval(() => {
+        attempts++;
+        if (localStream) {
+          clearInterval(waitForStream);
+          call.answer(localStream);
+          handleCallStream(call);
+        } else if (attempts >= 25) { // ~5s timeout
+          clearInterval(waitForStream);
+          call.answer(localStream); // answer anyway (receive-only) so audio/chat still works
+          handleCallStream(call);
+        }
+      }, 200);
     }
 
     function connectToRemote(remoteId) {
@@ -1377,9 +1339,30 @@
       }
 
       // DETERMINISTIC TIE-BREAKING: Prevents dual-calling glare
-      if (!calls[remoteId] && localStream && peer.id < remoteId) {
-        initiateCall(remoteId);
+      if (!calls[remoteId] && peer.id < remoteId) {
+        initiateCallWhenReady(remoteId);
       }
+    }
+
+    function initiateCallWhenReady(remoteId) {
+      if (localStream) {
+        initiateCall(remoteId);
+        return;
+      }
+      // Camera/mic permission hadn't resolved yet at connect time — wait
+      // for it instead of silently never calling at all.
+      let attempts = 0;
+      const waitForStream = setInterval(() => {
+        attempts++;
+        if (calls[remoteId]) { clearInterval(waitForStream); return; }
+        if (localStream) {
+          clearInterval(waitForStream);
+          initiateCall(remoteId);
+        } else if (attempts >= 25) { // ~5s timeout
+          clearInterval(waitForStream);
+          console.warn(`Gave up waiting for local camera before calling ${remoteId}`);
+        }
+      }, 200);
     }
 
     function initiateCall(remoteId) {
@@ -1389,6 +1372,10 @@
     }
 
     function handleCallStream(call) {
+      if (call.peerConnection && !call.peerConnection.onnegotiationneeded) {
+        call.peerConnection.onnegotiationneeded = () => handleRenegotiation(call);
+      }
+
       call.on('stream', (remoteStream) => {
         const pName = peerNames[call.peer] || 'Remote Peer';
         addPeerCard(call.peer, pName);
@@ -1412,16 +1399,28 @@
       });
     }
 
+    async function handleRenegotiation(call) {
+      const pc = call.peerConnection;
+      const conn = dataConns[call.peer];
+      if (!pc || !conn || !conn.open) return;
+      if (pc.signalingState !== 'stable') return; // avoid glare; will settle on next negotiationneeded
+      try {
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        conn.send({ type: 'renegotiate-offer', sdp: pc.localDescription });
+      } catch (err) {
+        console.error('Renegotiation offer failed:', err);
+      }
+    }
+
     function setupDataChannel(conn) {
       conn.on('open', () => {
         conn.send({ 
           type: 'meta', 
           name: userName, 
           videoOff: isVideoOff,
-          peerList: [peer.id, ...Object.keys(dataConns)],
-          hostPeerId: hostPeerId,
-          micBanned: micBanned,
-          camBanned: camBanned
+          isHost: isHost,
+          peerList: [peer.id, ...Object.keys(dataConns)]
         });
       });
 
@@ -1430,24 +1429,12 @@
           peerNames[conn.peer] = data.name || 'Remote Peer';
           addPeerCard(conn.peer, peerNames[conn.peer]);
           updateRemoteVideoState(conn.peer, data.videoOff);
+          setPeerHostBadge(conn.peer, data.isHost);
 
           if (Array.isArray(data.peerList)) {
             data.peerList.forEach(pId => {
               if (pId !== peer.id && !dataConns[pId]) connectToRemote(pId);
             });
-          }
-
-          // Sync host-enforced ban state (e.g. a late joiner catching up on current rules)
-          if (data.hostPeerId && !hostPeerId) hostPeerId = data.hostPeerId;
-          if (typeof data.micBanned === 'boolean' && data.micBanned && !micBanned) {
-            micBanned = true;
-            if (!isHost) updateAudioState(true);
-            applyHostUIState();
-          }
-          if (typeof data.camBanned === 'boolean' && data.camBanned && !camBanned) {
-            camBanned = true;
-            if (!isHost) updateLocalVideoState(true);
-            applyHostUIState();
           }
         } else if (data.type === 'video-toggle') {
           updateRemoteVideoState(conn.peer, data.videoOff);
@@ -1460,38 +1447,43 @@
           drawRemoteLine(data);
         } else if (data.type === 'clear-wb') {
           clearCanvasLocal();
-        } else if (data.type === 'host-mute-all') {
-          if (conn.peer === hostPeerId) {
+        } else if (data.type === 'kick') {
+          showToast("You were removed by the host.");
+          setTimeout(() => { stopAllTracks(); location.reload(); }, 800);
+        } else if (data.type === 'end-meeting') {
+          showToast("The host ended the meeting.");
+          setTimeout(() => { stopAllTracks(); location.reload(); }, 800);
+        } else if (data.type === 'force-mute') {
+          if (!isAudioMuted) {
             updateAudioState(true);
-            showToast("The host muted your microphone.");
+            showToast("The host muted your mic.");
           }
-        } else if (data.type === 'host-mic-ban') {
-          if (conn.peer === hostPeerId) {
-            micBanned = !!data.banned;
-            if (micBanned) updateAudioState(true);
-            applyHostUIState();
-            showToast(micBanned ? "The host disabled microphones for everyone." : "The host re-enabled microphones.");
-          }
-        } else if (data.type === 'host-cam-ban') {
-          if (conn.peer === hostPeerId) {
-            camBanned = !!data.banned;
-            if (camBanned) updateLocalVideoState(true);
-            applyHostUIState();
-            showToast(camBanned ? "The host disabled cameras for everyone." : "The host re-enabled cameras.");
-          }
-        } else if (data.type === 'host-force-mute') {
-          if (conn.peer === hostPeerId) {
-            updateAudioState(true);
-            showToast("The host muted your microphone.");
-          }
-        } else if (data.type === 'host-force-video-off') {
-          if (conn.peer === hostPeerId) {
+        } else if (data.type === 'force-video-off') {
+          if (!isVideoOff) {
             updateLocalVideoState(true);
             showToast("The host turned off your camera.");
           }
-        } else if (data.type === 'host-kick') {
-          if (conn.peer === hostPeerId) {
-            showKickedOverlay();
+        } else if (data.type === 'force-stop-share') {
+          if (isSharingScreen) {
+            stopScreenSharing();
+            showToast("The host stopped your screen share.");
+          }
+        } else if (data.type === 'renegotiate-offer') {
+          const call = calls[conn.peer];
+          if (call && call.peerConnection) {
+            const pc = call.peerConnection;
+            Promise.resolve()
+              .then(() => pc.setRemoteDescription(new RTCSessionDescription(data.sdp)))
+              .then(() => pc.createAnswer())
+              .then(answer => pc.setLocalDescription(answer))
+              .then(() => conn.send({ type: 'renegotiate-answer', sdp: pc.localDescription }))
+              .catch(err => console.error('Renegotiation answer failed:', err));
+          }
+        } else if (data.type === 'renegotiate-answer') {
+          const call = calls[conn.peer];
+          if (call && call.peerConnection) {
+            Promise.resolve(call.peerConnection.setRemoteDescription(new RTCSessionDescription(data.sdp)))
+              .catch(err => console.error('Applying renegotiation answer failed:', err));
           }
         }
       });
@@ -1655,31 +1647,30 @@
     }
 
     async function updateLocalVideoState(off) {
-      if (!off && camBanned && !isHost) {
-        showToast("The host has disabled cameras for this meeting.");
-        return;
-      }
-
       isVideoOff = off;
       document.getElementById('videoLabel').textContent = isVideoOff ? "Start Video" : "Stop Video";
       stopVideoBtn.classList.toggle('active', isVideoOff);
-      applyLockUI();
 
       if (isVideoOff) {
+        // Just disable the existing track (same pattern as audio mute) instead
+        // of removing it from the peer connection — that avoids needing any
+        // renegotiation at all, so the connection never destabilizes.
         if (cameraTrack) {
-          cameraTrack.stop();
-          if (localStream) localStream.removeTrack(cameraTrack);
-          cameraTrack = null;
+          cameraTrack.enabled = false;
         }
         localVideo.classList.add('hidden-video');
         localAvatar.style.display = 'flex';
-        Object.values(calls).forEach(call => {
-          if (call.peerConnection) {
-            const sender = call.peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
-            if (sender) call.peerConnection.removeTrack(sender);
-          }
-        });
+      } else if (cameraTrack && localStream && localStream.getVideoTracks().includes(cameraTrack)) {
+        // Track still exists (just disabled) — re-enable it in place, no
+        // peer connection changes, no renegotiation needed.
+        cameraTrack.enabled = true;
+        localVideo.classList.remove('hidden-video');
+        localAvatar.style.display = 'none';
       } else {
+        // No camera track at all yet (e.g. camera was never granted, or was
+        // fully lost) — this is the only path that genuinely needs a new
+        // track added to the peer connections, and therefore the only path
+        // that needs renegotiation (handled automatically via onnegotiationneeded).
         try {
           const newVideoStream = await navigator.mediaDevices.getUserMedia({ video: true });
           cameraTrack = newVideoStream.getVideoTracks()[0];
@@ -1721,11 +1712,6 @@
     }
 
     function updateAudioState(muted) {
-      if (!muted && micBanned && !isHost) {
-        showToast("The host has disabled microphones for this meeting.");
-        return;
-      }
-
       isAudioMuted = muted;
       const track = localStream ? localStream.getAudioTracks()[0] : null;
       if (track) track.enabled = !isAudioMuted;
@@ -1733,7 +1719,6 @@
       document.getElementById('audioLabel').textContent = isAudioMuted ? "Unmute" : "Mute";
       muteAudioBtn.classList.toggle('active', isAudioMuted);
       updateMasterAvButtonState();
-      applyLockUI();
     }
 
     function updateMasterAvButtonState() {
@@ -1864,10 +1849,9 @@
 
       setUserName(name);
       await initPeerInstance();
-
       isHost = true;
-      hostPeerId = meetingCode;
-      applyHostUIState();
+      hostId = peer.id;
+      setHostUIVisible(true);
 
       generatedInviteMessage = `Hello, I would like you to join ${mName} in Rumeet. It is a ${mDesc}. Timings (${startTime}) to (${endTime}). Code: ${meetingCode}.`;
       document.getElementById('msgPreviewBox').textContent = generatedInviteMessage;
@@ -1887,6 +1871,9 @@
 
     document.getElementById('enterStageBtn').addEventListener('click', () => {
       modalOverlay.style.display = 'none';
+      if (localVideo.srcObject) {
+        localVideo.play().catch(err => console.warn("Local video autoplay suppressed:", err));
+      }
     });
 
     document.getElementById('submitJoinBtn').addEventListener('click', async () => {
@@ -1898,8 +1885,7 @@
 
       setUserName(name);
       isHost = false;
-      hostPeerId = targetCode;
-      applyHostUIState();
+      setHostUIVisible(false);
       modalOverlay.style.display = 'none';
       await initPeerInstance(); 
       connectToRemote(targetCode);
